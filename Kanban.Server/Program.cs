@@ -12,6 +12,8 @@ public class Program
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddControllers();
         builder.Services.AddScoped<Kanban.Application.Services.IBoardService, Kanban.Application.Services.BoardService>();
+        builder.Services.AddScoped<Kanban.Application.Services.ITaskService, Kanban.Application.Services.TaskService>();
+        builder.Services.AddScoped<Kanban.Application.Services.IColumnService, Kanban.Application.Services.ColumnService>();
         builder.Services.AddOpenApi();
 
         // Add database context
