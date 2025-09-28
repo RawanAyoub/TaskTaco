@@ -7,8 +7,9 @@ namespace Kanban.Application.Services;
 public interface IBoardService
 {
     Task<IEnumerable<Board>> GetBoardsAsync();
+    Task<IEnumerable<Board>> GetBoardsByUserAsync(string userId);
     Task<Board?> GetBoardByIdAsync(int id);
-    Task<Board> CreateBoardAsync(string name);
+    Task<Board> CreateBoardAsync(string name, string userId);
     Task<bool> UpdateBoardAsync(int id, string name);
     Task<bool> DeleteBoardAsync(int id);
 }
@@ -38,6 +39,19 @@ public class BoardService : IBoardService
     }
 
     /// <summary>
+    /// Gets all boards for a specific user asynchronously.
+    /// </summary>
+    /// <param name="userId">The user ID to filter boards by.</param>
+    /// <returns>A collection of boards for the specified user.</returns>
+    public async Task<IEnumerable<Board>> GetBoardsByUserAsync(string userId)
+    {
+        return await this.context.Boards
+            .Where(b => b.UserId == userId)
+            .Include(b => b.Columns)
+            .ToListAsync();
+    }
+
+    /// <summary>
     /// Gets a board by its ID asynchronously.
     /// </summary>
     /// <param name="id">The board ID.</param>
@@ -53,13 +67,14 @@ public class BoardService : IBoardService
     /// Creates a new board asynchronously.
     /// </summary>
     /// <param name="name">The name of the board.</param>
+    /// <param name="userId">The ID of the user creating the board.</param>
     /// <returns>The created board.</returns>
-    public async Task<Board> CreateBoardAsync(string name)
+    public async Task<Board> CreateBoardAsync(string name, string userId)
     {
         var board = new Board
         {
             Name = name,
-            UserId = "temp-user-id", // TODO: Get from authenticated user
+            UserId = userId,
         };
         this.context.Boards.Add(board);
         await this.context.SaveChangesAsync();

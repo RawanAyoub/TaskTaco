@@ -19,9 +19,14 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
+    
+    // Get auth token from authService if available
+    const authHeaders = await this.getAuthHeaders();
+    
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders,
         ...options.headers,
       },
       ...options,
@@ -32,6 +37,12 @@ class ApiClient {
     }
 
     return response.json();
+  }
+
+  private async getAuthHeaders(): Promise<Record<string, string>> {
+    // Import authService dynamically to avoid circular dependency
+    const { authService } = await import('./auth');
+    return authService.getAuthHeader();
   }
 
   // Board API

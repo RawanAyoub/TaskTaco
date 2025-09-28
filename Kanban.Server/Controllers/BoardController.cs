@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Kanban.Domain.Entities;
 using Kanban.Application.Services;
+using System.Security.Claims;
 
 namespace Kanban.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class BoardController : ControllerBase
 {
     private readonly IBoardService _boardService;
@@ -19,8 +22,14 @@ public class BoardController : ControllerBase
     [ProducesResponseType(typeof(CreateBoardResponse), StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateBoard([FromBody] CreateBoardRequest request)
     {
-        var board = await _boardService.CreateBoardAsync(request.Name);
-        Console.WriteLine($"Created board {board.Id}: {board.Name}");
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        var board = await _boardService.CreateBoardAsync(request.Name, userId);
+        Console.WriteLine($"Created board {board.Id}: {board.Name} for user {userId}");
 
         var response = new CreateBoardResponse { Id = board.Id };
         return CreatedAtAction(nameof(GetBoards), response);
@@ -30,7 +39,13 @@ public class BoardController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<BoardDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetBoards()
     {
-        var boards = await _boardService.GetBoardsAsync();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        var boards = await _boardService.GetBoardsByUserAsync(userId);
         var boardDtos = boards.Select(b => new BoardDto
         {
             Id = b.Id,

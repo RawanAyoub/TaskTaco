@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, FileText, Download } from 'lucide-react';
+import { Copy, FileText, Download, Check } from 'lucide-react';
 
 interface AIPrdExportModalProps {
   boardId: number;
@@ -26,13 +26,15 @@ export function AIPrdExportModal({ boardId, boardName }: AIPrdExportModalProps) 
   const [exportData, setExportData] = useState<ExportData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [copiedJson, setCopiedJson] = useState(false);
 
   const handleExport = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`/api/aiprdexport/${boardId}/export`);
+      const response = await fetch(`http://localhost:5090/api/aiprdexport/${boardId}/export`);
       if (!response.ok) {
         throw new Error('Failed to export board data');
       }
@@ -46,10 +48,18 @@ export function AIPrdExportModal({ boardId, boardName }: AIPrdExportModalProps) 
     }
   };
 
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = async (text: string, type: 'prompt' | 'json') => {
     try {
       await navigator.clipboard.writeText(text);
-      // You could add a toast notification here
+      
+      // Set copied state with animation
+      if (type === 'prompt') {
+        setCopiedPrompt(true);
+        setTimeout(() => setCopiedPrompt(false), 2000);
+      } else {
+        setCopiedJson(true);
+        setTimeout(() => setCopiedJson(false), 2000);
+      }
     } catch (err) {
       console.error('Failed to copy to clipboard:', err);
     }
@@ -107,10 +117,22 @@ export function AIPrdExportModal({ boardId, boardName }: AIPrdExportModalProps) 
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => copyToClipboard(exportData.prompt)}
+                    onClick={() => copyToClipboard(exportData.prompt, 'prompt')}
+                    className={`transition-all duration-200 ${
+                      copiedPrompt ? 'bg-green-50 border-green-200 text-green-700' : ''
+                    }`}
                   >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy
+                    {copiedPrompt ? (
+                      <>
+                        <Check className="w-4 h-4 mr-2 animate-pulse" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy
+                      </>
+                    )}
                   </Button>
                   <Button
                     variant="outline"
@@ -136,10 +158,22 @@ export function AIPrdExportModal({ boardId, boardName }: AIPrdExportModalProps) 
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => copyToClipboard(exportData.json)}
+                    onClick={() => copyToClipboard(exportData.json, 'json')}
+                    className={`transition-all duration-200 ${
+                      copiedJson ? 'bg-green-50 border-green-200 text-green-700' : ''
+                    }`}
                   >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy
+                    {copiedJson ? (
+                      <>
+                        <Check className="w-4 h-4 mr-2 animate-pulse" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy
+                      </>
+                    )}
                   </Button>
                   <Button
                     variant="outline"

@@ -1,8 +1,16 @@
 const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:5090/api';
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  // Dynamically import auth service to get authorization headers
+  const { authService } = await import('./auth');
+  const authHeaders = authService.getAuthHeader();
+  
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
+    headers: { 
+      'Content-Type': 'application/json', 
+      ...authHeaders,
+      ...(init?.headers ?? {}) 
+    },
     ...init,
   });
   if (!res.ok) {

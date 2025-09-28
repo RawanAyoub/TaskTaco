@@ -10,4 +10,13 @@ export default defineConfig({
       "@": resolve("./src"),
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5090',
+        changeOrigin: true,
+        secure: false
+      }
+    }
+  }
 })

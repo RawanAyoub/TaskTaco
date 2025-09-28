@@ -18,6 +18,7 @@ import { Trash2, Pencil, X, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { AIPrdExportModal } from '@/components/AIPrdExportModal';
+import { CreateTaskDialog, CreateColumnDialog } from '@/components/dialogs';
 
 const colorFor = (name: string) => {
   const key = name.toLowerCase();
@@ -26,17 +27,11 @@ const colorFor = (name: string) => {
   return '#6B7280'; // planned/other
 };
 
-const BoardView: FC = () => {
-  // Read boardId from the URL query string (?boardId=), default to 1
-  const boardId = (() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const val = Number(params.get('boardId') ?? '1');
-      return Number.isFinite(val) && val > 0 ? val : 1;
-    } catch {
-      return 1;
-    }
-  })();
+interface BoardViewProps {
+  boardId: number;
+}
+
+const BoardView: FC<BoardViewProps> = ({ boardId }) => {
   const [columns, setColumns] = useState<ColumnDto[]>([]);
   const [tasksByColumn, setTasksByColumn] = useState<Record<number, TaskDto[]>>({});
   const [loading, setLoading] = useState(true);
@@ -120,9 +115,7 @@ const BoardView: FC = () => {
     }
   };
 
-  const handleAddColumn = async () => {
-    const name = window.prompt('Column name');
-    if (!name) return;
+  const handleAddColumn = async (name: string) => {
     try {
       const order = columns.length;
       const col = await Columns.create(boardId, name, order);
@@ -130,15 +123,12 @@ const BoardView: FC = () => {
       setTasksByColumn((prev) => ({ ...prev, [col.id]: [] }));
     } catch (e: any) {
       setError(e?.message ?? 'Failed to create column');
+      throw e; // Re-throw for dialog error handling
     }
   };
 
-  const handleAddTask = async (columnId: number) => {
-    const title = window.prompt('Task title');
-    if (!title) return;
-    const description = window.prompt('Task description') ?? '';
+  const handleAddTask = async (columnId: number, title: string, description: string, priority: string) => {
     const status = columns.find((c) => c.id === columnId)?.name ?? '';
-    const priority = 'Medium';
 
     // optimistic insert at end
     const prev = structuredClone(tasksByColumn);
@@ -166,6 +156,7 @@ const BoardView: FC = () => {
     } catch (e: any) {
       setError(e?.message ?? 'Failed to create task');
       setTasksByColumn(prev);
+      throw e; // Re-throw for dialog error handling
     }
   };
 
@@ -233,7 +224,14 @@ const BoardView: FC = () => {
         <div className="text-sm text-muted-foreground">Board #{boardId}</div>
         <div className="flex gap-2">
           <AIPrdExportModal boardId={boardId} boardName={`Board #${boardId}`} />
-          <Button variant="secondary" size="sm" onClick={handleAddColumn}>+ Column</Button>
+          <CreateColumnDialog 
+            onColumnCreate={handleAddColumn}
+            trigger={
+              <Button variant="secondary" size="sm">
+                + Column
+              </Button>
+            }
+          />
         </div>
       </div>
       <KanbanProvider onDragEnd={handleDragEnd}>
@@ -246,9 +244,15 @@ const BoardView: FC = () => {
             <div className="flex items-center justify-between">
               <KanbanHeader name={status.name} color={status.color} />
               {col && (
-                <Button variant="ghost" size="sm" onClick={() => handleAddTask(col.id)}>
-                  + Task
-                </Button>
+                <CreateTaskDialog 
+                  onTaskCreate={(title, description, priority) => handleAddTask(col.id, title, description, priority)}
+                  columnName={col.name}
+                  trigger={
+                    <Button variant="ghost" size="sm">
+                      + Task
+                    </Button>
+                  }
+                />
               )}
             </div>
             <KanbanCards>

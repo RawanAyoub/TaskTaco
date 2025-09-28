@@ -32,7 +32,7 @@ export function KanbanColumn({ column, tasks, onUpdate }: KanbanColumnProps) {
     if (!newTaskTitle.trim()) return;
 
     try {
-      await fetch(`http://localhost:5000/api/task`, {
+      await fetch(`http://localhost:5090/api/task`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
