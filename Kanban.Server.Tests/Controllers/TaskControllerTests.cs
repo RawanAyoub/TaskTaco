@@ -166,6 +166,64 @@ public class TaskControllerTests : IClassFixture<CustomWebApplicationFactory<Kan
     }
 
     /// <summary>
+    /// Tests moving a task between columns updates its location.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    [Fact]
+    public async Task MoveTask_ValidRequest_MovesToAnotherColumn()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        // Create a board
+        var createBoardResponse = await client.PostAsJsonAsync("/api/board", new { name = "Move Board" });
+        Assert.Equal(HttpStatusCode.Created, createBoardResponse.StatusCode);
+        var board = await createBoardResponse.Content.ReadFromJsonAsync<CreateBoardResponse>();
+        Assert.NotNull(board);
+
+        // Create two columns
+        var col1Resp = await client.PostAsJsonAsync($"/api/column/board/{board.Id}", new { name = "To Do", order = 0 });
+        var col2Resp = await client.PostAsJsonAsync($"/api/column/board/{board.Id}", new { name = "In Progress", order = 1 });
+        Assert.Equal(HttpStatusCode.Created, col1Resp.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, col2Resp.StatusCode);
+        var col1 = await col1Resp.Content.ReadFromJsonAsync<CreateColumnResponse>();
+        var col2 = await col2Resp.Content.ReadFromJsonAsync<CreateColumnResponse>();
+        Assert.NotNull(col1);
+        Assert.NotNull(col2);
+
+        // Create a task in the first column
+        var createTaskResp = await client.PostAsJsonAsync("/api/task", new
+        {
+            columnId = col1!.Id,
+            title = "Move Me",
+            description = "Test move",
+            status = "To Do",
+            priority = "Medium"
+        });
+        Assert.Equal(HttpStatusCode.Created, createTaskResp.StatusCode);
+        var task = await createTaskResp.Content.ReadFromJsonAsync<CreateTaskResponse>();
+        Assert.NotNull(task);
+
+        // Act: move to second column at order 0
+        var moveResp = await client.PutAsJsonAsync($"/api/task/{task!.Id}/move", new { columnId = col2!.Id, order = 0 });
+        Assert.Equal(HttpStatusCode.OK, moveResp.StatusCode);
+
+        // Assert: should appear in second column
+        var tasksInSecondColResp = await client.GetAsync($"/api/task/column/{col2!.Id}");
+        Assert.Equal(HttpStatusCode.OK, tasksInSecondColResp.StatusCode);
+        var tasksInSecondCol = await tasksInSecondColResp.Content.ReadFromJsonAsync<List<TaskDto>>();
+        Assert.NotNull(tasksInSecondCol);
+        Assert.Contains(tasksInSecondCol!, t => t.Id == task.Id);
+
+        // And not in the first column
+        var tasksInFirstColResp = await client.GetAsync($"/api/task/column/{col1!.Id}");
+        Assert.Equal(HttpStatusCode.OK, tasksInFirstColResp.StatusCode);
+        var tasksInFirstCol = await tasksInFirstColResp.Content.ReadFromJsonAsync<List<TaskDto>>();
+        Assert.NotNull(tasksInFirstCol);
+        Assert.DoesNotContain(tasksInFirstCol!, t => t.Id == task.Id);
+    }
+
+    /// <summary>
     /// Response model for creating a board.
     /// </summary>
     private class CreateBoardResponse
