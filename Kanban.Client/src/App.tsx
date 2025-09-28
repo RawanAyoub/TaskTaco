@@ -16,7 +16,7 @@ function App() {
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <div className="min-h-screen bg-background text-foreground p-6">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold">Kanban Demo - Integrated Components</h1>
+          <h1 className="text-2xl font-bold">TacoTask - Kanban Board</h1>
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <Button variant="outline" size="sm">
