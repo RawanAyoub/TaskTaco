@@ -36,6 +36,8 @@ export const KanbanBoard = ({ id, children, className }: KanbanBoardProps) => {
 
   return (
     <div
+      data-status={id}
+      data-testid="kanban-board"
       className={cn(
         'flex h-full min-h-40 flex-col gap-2 rounded-md border bg-secondary p-2 text-xs shadow-sm outline outline-2 transition-all',
         isOver ? 'outline-primary' : 'outline-transparent',
@@ -80,6 +82,8 @@ export const KanbanCard = ({
 
   return (
     <Card
+      data-testid="kanban-card"
+      data-task-id={id}
       className={cn(
         'rounded-md p-3 shadow-sm',
         isDragging && 'cursor-grabbing',

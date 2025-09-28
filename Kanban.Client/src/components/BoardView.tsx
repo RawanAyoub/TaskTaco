@@ -26,7 +26,16 @@ const colorFor = (name: string) => {
 };
 
 const BoardView: FC = () => {
-  const boardId = 1;
+  // Read boardId from the URL query string (?boardId=), default to 1
+  const boardId = (() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const val = Number(params.get('boardId') ?? '1');
+      return Number.isFinite(val) && val > 0 ? val : 1;
+    } catch {
+      return 1;
+    }
+  })();
   const [columns, setColumns] = useState<ColumnDto[]>([]);
   const [tasksByColumn, setTasksByColumn] = useState<Record<number, TaskDto[]>>({});
   const [loading, setLoading] = useState(true);
