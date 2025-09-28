@@ -99,6 +99,8 @@ public class Program
         builder.Services.AddScoped<Kanban.Application.Services.IColumnService, Kanban.Application.Services.ColumnService>();
         builder.Services.AddOpenApi();
 
+
+
         // Add CORS policy
         builder.Services.AddCors(options =>
         {

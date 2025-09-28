@@ -5,7 +5,6 @@ describe('http api()', () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
-    // @ts-expect-error override fetch for test
     global.fetch = vi.fn();
   });
 

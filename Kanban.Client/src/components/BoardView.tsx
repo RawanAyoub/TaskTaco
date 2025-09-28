@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Trash2, Pencil, X, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { AIPrdExportModal } from '@/components/AIPrdExportModal';
 
 const colorFor = (name: string) => {
   const key = name.toLowerCase();
@@ -230,7 +231,10 @@ const BoardView: FC = () => {
     <>
       <div className="flex items-center justify-between mb-3">
         <div className="text-sm text-muted-foreground">Board #{boardId}</div>
-        <Button variant="secondary" size="sm" onClick={handleAddColumn}>+ Column</Button>
+        <div className="flex gap-2">
+          <AIPrdExportModal boardId={boardId} boardName={`Board #${boardId}`} />
+          <Button variant="secondary" size="sm" onClick={handleAddColumn}>+ Column</Button>
+        </div>
       </div>
       <KanbanProvider onDragEnd={handleDragEnd}>
       {statuses.map((status) => {
