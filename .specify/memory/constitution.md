@@ -1,50 +1,52 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!-- Sync Impact Report
 
-## Core Principles
+Version change: none → 1.0.0
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+List of modified principles: none
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+Added sections: Governance
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+Removed sections: none
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+Templates requiring updates: none (principles unchanged)
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+Follow-up TODOs: Ratification date, amendment procedure, compliance review
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+-->
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+# Constitution
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+1. **Mission and values** – Provide a completely free, privacy-respecting productivity tool during a time of rising IT costs. Users fully own their data and workflows without subscriptions or external providers.
+2. **User focus** – Prioritize usability, accessibility and performance. Users should install and run locally with minimal setup.
+3. **Code quality** – Consistent C# and TypeScript style. SOLID principles. Modular, testable code. CI enforces linting and formatting.
+4. **Security** – ASP.NET Identity with JWT, secure storage of secrets, protect against SQL injection, XSS, CSRF. HTTPS when hosted. No telemetry by default.
+5. **Reliability & tests** – Unit, integration and E2E tests. CI must run and pass tests. No merge without green builds.
+6. **Maintainability** – Layered backend (Domain, Application, Infrastructure, API). Clean component structure in React. Prefer well-maintained libraries.
+7. **Open source & free** – MIT license. Clear docs, CONTRIBUTING, and respectful community. The goal is to help people when IT is expensive.
+8. **Privacy & data ownership** – Local-first (SQLite). Import/export available. No forced cloud dependencies.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+### Version
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+1.0.0
+
+### Ratification Date
+
+TODO(RATIFICATION_DATE): Original adoption date unknown, set to project start date if available.
+
+### Last Amended Date
+
+2025-09-28
+
+### Amendment Procedure
+
+TODO(AMENDMENT_PROCEDURE): Define how amendments are proposed and approved.
+
+### Versioning Policy
+
+Semantic versioning: MAJOR for backward incompatible governance/principle removals or redefinitions. MINOR for new principle/section added or materially expanded guidance. PATCH for clarifications, wording, typo fixes, non-semantic refinements.
+
+### Compliance Review Expectations
+
+TODO(COMPLIANCE_REVIEW): Define expectations for compliance review.
