@@ -9,7 +9,7 @@ public class TaskTests
     public void Task_CanBeCreated_WithValidData()
     {
         // Arrange & Act
-        var task = new Task
+        var task = new Kanban.Domain.Entities.Task
         {
             Id = 1,
             Title = "Implement login",
@@ -37,7 +37,7 @@ public class TaskTests
     public void Task_DueDate_CanBeNull()
     {
         // Arrange & Act
-        var task = new Task
+        var task = new Kanban.Domain.Entities.Task
         {
             Title = "Test Task",
             DueDate = null

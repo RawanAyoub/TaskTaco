@@ -22,13 +22,13 @@ public class BoardControllerTests : IClassFixture<WebApplicationFactory<Kanban.S
         var request = new { name = "My Board" };
 
         // Act
-        var response = await client.PostAsJsonAsync("/api/boards", request);
+        var response = await client.PostAsJsonAsync("/api/board", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<CreateBoardResponse>();
         Assert.NotNull(result);
-        Assert.NotEqual(Guid.Empty, result.Id);
+        Assert.True(result.Id > 0);
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public class BoardControllerTests : IClassFixture<WebApplicationFactory<Kanban.S
         var client = _factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync("/api/boards");
+        var response = await client.GetAsync("/api/board");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -51,11 +51,17 @@ public class BoardControllerTests : IClassFixture<WebApplicationFactory<Kanban.S
     {
         // Arrange
         var client = _factory.CreateClient();
-        var boardId = Guid.NewGuid(); // Assume board exists
-        var request = new { name = "Updated Name" };
-
-        // Act
-        var response = await client.PutAsJsonAsync($"/api/boards/{boardId}", request);
+        
+        // First create a board
+        var createRequest = new { name = "Test Board" };
+        var createResponse = await client.PostAsJsonAsync("/api/board", createRequest);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var createResult = await createResponse.Content.ReadFromJsonAsync<CreateBoardResponse>();
+        Assert.NotNull(createResult);
+        
+        // Now update the board
+        var updateRequest = new { name = "Updated Name" };
+        var response = await client.PutAsJsonAsync($"/api/board/{createResult.Id}", updateRequest);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -66,10 +72,16 @@ public class BoardControllerTests : IClassFixture<WebApplicationFactory<Kanban.S
     {
         // Arrange
         var client = _factory.CreateClient();
-        var boardId = Guid.NewGuid(); // Assume board exists
+        
+        // First create a board
+        var createRequest = new { name = "Test Board" };
+        var createResponse = await client.PostAsJsonAsync("/api/board", createRequest);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var createResult = await createResponse.Content.ReadFromJsonAsync<CreateBoardResponse>();
+        Assert.NotNull(createResult);
 
-        // Act
-        var response = await client.DeleteAsync($"/api/boards/{boardId}");
+        // Now delete the board
+        var response = await client.DeleteAsync($"/api/board/{createResult.Id}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
@@ -77,12 +89,12 @@ public class BoardControllerTests : IClassFixture<WebApplicationFactory<Kanban.S
 
     private class CreateBoardResponse
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
     }
 
     private class BoardDto
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
     }
 }

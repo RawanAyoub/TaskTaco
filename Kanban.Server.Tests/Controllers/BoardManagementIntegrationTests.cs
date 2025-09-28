@@ -22,38 +22,43 @@ public class BoardManagementIntegrationTests : IClassFixture<WebApplicationFacto
 
         // Act 1: Create a board
         var createRequest = new { name = "Integration Test Board" };
-        var createResponse = await client.PostAsJsonAsync("/api/boards", createRequest);
+        var createResponse = await client.PostAsJsonAsync("/api/board", createRequest);
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
-        var createdBoard = await createResponse.Content.ReadFromJsonAsync<BoardDto>();
-        Assert.NotNull(createdBoard);
+        var createResult = await createResponse.Content.ReadFromJsonAsync<CreateBoardResponse>();
+        Assert.NotNull(createResult);
 
         // Act 2: Get boards list
-        var getResponse = await client.GetAsync("/api/boards");
+        var getResponse = await client.GetAsync("/api/board");
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
         var boards = await getResponse.Content.ReadFromJsonAsync<List<BoardDto>>();
         Assert.NotNull(boards);
-        Assert.Contains(boards, b => b.Id == createdBoard.Id);
+        Assert.Contains(boards, b => b.Id == createResult.Id);
 
         // Act 3: Update the board
         var updateRequest = new { name = "Updated Integration Test Board" };
-        var updateResponse = await client.PutAsJsonAsync($"/api/boards/{createdBoard.Id}", updateRequest);
+        var updateResponse = await client.PutAsJsonAsync($"/api/board/{createResult.Id}", updateRequest);
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
 
         // Act 4: Delete the board
-        var deleteResponse = await client.DeleteAsync($"/api/boards/{createdBoard.Id}");
+        var deleteResponse = await client.DeleteAsync($"/api/board/{createResult.Id}");
         Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
 
         // Act 5: Verify board is deleted
-        var getAfterDeleteResponse = await client.GetAsync("/api/boards");
+        var getAfterDeleteResponse = await client.GetAsync("/api/board");
         Assert.Equal(HttpStatusCode.OK, getAfterDeleteResponse.StatusCode);
         var boardsAfterDelete = await getAfterDeleteResponse.Content.ReadFromJsonAsync<List<BoardDto>>();
         Assert.NotNull(boardsAfterDelete);
-        Assert.DoesNotContain(boardsAfterDelete, b => b.Id == createdBoard.Id);
+        Assert.DoesNotContain(boardsAfterDelete, b => b.Id == createResult.Id);
     }
 
     private class BoardDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
+    }
+
+    private class CreateBoardResponse
+    {
+        public int Id { get; set; }
     }
 }
