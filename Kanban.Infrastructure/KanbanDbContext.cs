@@ -1,31 +1,52 @@
-using Kanban.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-
 namespace Kanban.Infrastructure;
 
-public class KanbanDbContext : DbContext
+using Kanban.Domain.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+
+/// <summary>
+/// Entity Framework Core database context for the Kanban application with Identity support.
+/// </summary>
+public class KanbanDbContext : IdentityDbContext<User>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="KanbanDbContext"/> class.
+    /// </summary>
+    /// <param name="options">The database context options.</param>
     public KanbanDbContext(DbContextOptions<KanbanDbContext> options)
         : base(options)
     {
     }
 
-    public DbSet<User> Users { get; set; } = null!;
+    /// <summary>
+    /// Gets or sets the collection of boards in the database.
+    /// </summary>
     public DbSet<Board> Boards { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the collection of columns in the database.
+    /// </summary>
     public DbSet<Column> Columns { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the collection of tasks in the database.
+    /// </summary>
     public DbSet<Kanban.Domain.Entities.Task> Tasks { get; set; } = null!;
 
+    /// <summary>
+    /// Configures entity relationships and constraints using Fluent API.
+    /// </summary>
+    /// <param name="modelBuilder">The model builder instance.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configure User entity
+        // Configure User entity (inherits from IdentityUser)
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(u => u.Id);
             entity.Property(u => u.Name).IsRequired().HasMaxLength(100);
-            entity.Property(u => u.Email).IsRequired().HasMaxLength(255);
-            entity.HasIndex(u => u.Email).IsUnique();
+
+            // Email and other Identity properties are already configured by IdentityDbContext
         });
 
         // Configure Board entity

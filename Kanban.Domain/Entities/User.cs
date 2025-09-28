@@ -1,11 +1,19 @@
 namespace Kanban.Domain.Entities;
 
-public class User
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
+using Microsoft.AspNetCore.Identity;
 
-    // Navigation properties
+/// <summary>
+/// Represents a user in the Kanban application with authentication and board ownership capabilities.
+/// </summary>
+public class User : IdentityUser
+{
+    /// <summary>
+    /// Gets or sets the display name of the user.
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the collection of boards owned by this user.
+    /// </summary>
     public ICollection<Board> Boards { get; set; } = new List<Board>();
 }

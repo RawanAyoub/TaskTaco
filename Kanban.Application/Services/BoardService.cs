@@ -59,7 +59,7 @@ public class BoardService : IBoardService
         var board = new Board
         {
             Name = name,
-            UserId = 1, // TODO: Get from authenticated user
+            UserId = "temp-user-id", // TODO: Get from authenticated user
         };
         this.context.Boards.Add(board);
         await this.context.SaveChangesAsync();

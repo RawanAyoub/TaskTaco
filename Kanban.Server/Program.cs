@@ -1,24 +1,27 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace Kanban.Server;
 
 public class Program
 {
-    private static void SeedDatabase(Kanban.Infrastructure.KanbanDbContext context)
+    private static async Task SeedDatabase(Kanban.Infrastructure.KanbanDbContext context, UserManager<Kanban.Domain.Entities.User> userManager)
     {
         // Ensure database is created
-        context.Database.EnsureCreated();
+        await context.Database.EnsureCreatedAsync();
 
         // Create default user if none exists
-        if (!context.Users.Any())
+        var defaultUser = await userManager.FindByEmailAsync("default@example.com");
+        if (defaultUser == null)
         {
-            var defaultUser = new Kanban.Domain.Entities.User
+            defaultUser = new Kanban.Domain.Entities.User
             {
                 Name = "Default User",
-                Email = "default@example.com"
+                UserName = "default@example.com",
+                Email = "default@example.com",
+                EmailConfirmed = true,
             };
-            context.Users.Add(defaultUser);
-            context.SaveChanges();
+            await userManager.CreateAsync(defaultUser, "password123");
         }
 
         // Create default board with columns and tasks if none exist
@@ -27,10 +30,10 @@ public class Program
             var board = new Kanban.Domain.Entities.Board
             {
                 Name = "My Kanban Board",
-                UserId = 1
+                UserId = defaultUser.Id,
             };
             context.Boards.Add(board);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             // Create columns
             var plannedColumn = new Kanban.Domain.Entities.Column
@@ -87,7 +90,7 @@ public class Program
         }
     }
 
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -99,7 +102,52 @@ public class Program
         builder.Services.AddScoped<Kanban.Application.Services.IColumnService, Kanban.Application.Services.ColumnService>();
         builder.Services.AddOpenApi();
 
+        // Add Identity services
+        builder.Services.AddIdentity<Kanban.Domain.Entities.User, Microsoft.AspNetCore.Identity.IdentityRole>()
+            .AddEntityFrameworkStores<Kanban.Infrastructure.KanbanDbContext>()
+            .AddDefaultTokenProviders();
 
+        // Configure Identity options
+        builder.Services.Configure<Microsoft.AspNetCore.Identity.IdentityOptions>(options =>
+        {
+            // Password settings
+            options.Password.RequireDigit = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequiredLength = 6;
+            options.Password.RequiredUniqueChars = 1;
+
+            // Lockout settings
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
+
+            // User settings
+            options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+            options.User.RequireUniqueEmail = true;
+        });
+
+        // Add JWT authentication
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "LocalFreeKanban",
+                ValidAudience = builder.Configuration["Jwt:Audience"] ?? "LocalFreeKanban",
+                IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                    System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "your-super-secure-key-that-is-at-least-256-bits"))
+            };
+        });
 
         // Add CORS policy
         builder.Services.AddCors(options =>
@@ -130,7 +178,8 @@ public class Program
         using (var scope = app.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<Kanban.Infrastructure.KanbanDbContext>();
-            SeedDatabase(context);
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Kanban.Domain.Entities.User>>();
+            await SeedDatabase(context, userManager);
         }
 
         // Configure the HTTP request pipeline.
@@ -140,6 +189,10 @@ public class Program
         }
 
         // app.UseHttpsRedirection();
+
+        // Use authentication and authorization
+        app.UseAuthentication();
+        app.UseAuthorization();
 
         // Use CORS
         app.UseCors("AllowFrontend");
