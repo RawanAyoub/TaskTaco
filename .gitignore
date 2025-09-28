@@ -1,0 +1,46 @@
+# Ignore Visual Studio files  
+.vs/
+*.sln
+*.csproj
+*.user
+*.suo       
+*.cache
+*.pdb   
+
+# Ignore build outputs
+bin/    
+obj/
+out/
+dist/
+*.dll
+
+# Ignore node modules
+node_modules/
+
+# Ignore logs and temp files
+logs/
+
+*.log
+*.tmp       
+
+# Ignore environment files
+.env
+.env.local
+.env.*.local
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE files
+.idea/
+*.iml
+.vscode/   
+
+# Ignore specify memory files
+.specify
+
+# Ignore other files
+.github/
+
+.specify/memory/constitution.md
