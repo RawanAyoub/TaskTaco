@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace Kanban.Server;
 
 public class Program
@@ -9,8 +11,20 @@ public class Program
         // Add services to the container.
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddControllers();
-        builder.Services.AddSingleton<Kanban.Application.Services.IBoardService, Kanban.Application.Services.BoardService>();
+        builder.Services.AddScoped<Kanban.Application.Services.IBoardService, Kanban.Application.Services.BoardService>();
         builder.Services.AddOpenApi();
+
+        // Add database context
+        if (builder.Environment.EnvironmentName == "Testing")
+        {
+            builder.Services.AddDbContext<Kanban.Infrastructure.KanbanDbContext>(options =>
+                options.UseInMemoryDatabase("TestDatabase"));
+        }
+        else
+        {
+            builder.Services.AddDbContext<Kanban.Infrastructure.KanbanDbContext>(options =>
+                options.UseSqlite("Data Source=Kanban.db"));
+        }
 
         var app = builder.Build();
 

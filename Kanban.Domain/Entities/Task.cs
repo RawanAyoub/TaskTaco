@@ -13,6 +13,9 @@ public class Task
     public int ColumnId { get; set; }
     public int Order { get; set; }
 
+    public int? AssignedUserId { get; set; }
+
     // Navigation properties
     public Column Column { get; set; } = null!;
+    public User? AssignedUser { get; set; }
 }

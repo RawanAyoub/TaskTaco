@@ -1,4 +1,6 @@
 using Kanban.Domain.Entities;
+using Kanban.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kanban.Application.Services;
 
@@ -13,46 +15,91 @@ public interface IBoardService
 
 public class BoardService : IBoardService
 {
-    private readonly List<Board> _boards = new();
-    private int _nextId = 1;
+    private readonly KanbanDbContext context;
 
-    public System.Threading.Tasks.Task<IEnumerable<Board>> GetBoardsAsync()
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BoardService"/> class.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    public BoardService(KanbanDbContext context)
     {
-        return System.Threading.Tasks.Task.FromResult<IEnumerable<Board>>(_boards);
+        this.context = context;
     }
 
-    public System.Threading.Tasks.Task<Board?> GetBoardByIdAsync(int id)
+    /// <summary>
+    /// Gets all boards asynchronously.
+    /// </summary>
+    /// <returns>A collection of boards.</returns>
+    public async Task<IEnumerable<Board>> GetBoardsAsync()
     {
-        return System.Threading.Tasks.Task.FromResult(_boards.FirstOrDefault(b => b.Id == id));
+        return await this.context.Boards
+            .Include(b => b.Columns)
+            .ToListAsync();
     }
 
-    public System.Threading.Tasks.Task<Board> CreateBoardAsync(string name)
+    /// <summary>
+    /// Gets a board by its ID asynchronously.
+    /// </summary>
+    /// <param name="id">The board ID.</param>
+    /// <returns>The board if found, otherwise null.</returns>
+    public async Task<Board?> GetBoardByIdAsync(int id)
+    {
+        return await this.context.Boards
+            .Include(b => b.Columns)
+            .FirstOrDefaultAsync(b => b.Id == id);
+    }
+
+    /// <summary>
+    /// Creates a new board asynchronously.
+    /// </summary>
+    /// <param name="name">The name of the board.</param>
+    /// <returns>The created board.</returns>
+    public async Task<Board> CreateBoardAsync(string name)
     {
         var board = new Board
         {
-            Id = _nextId++,
             Name = name,
-            UserId = 1 // TODO: Get from authenticated user
+            UserId = 1, // TODO: Get from authenticated user
         };
-        _boards.Add(board);
-        return System.Threading.Tasks.Task.FromResult(board);
+        this.context.Boards.Add(board);
+        await this.context.SaveChangesAsync();
+        return board;
     }
 
-    public System.Threading.Tasks.Task<bool> UpdateBoardAsync(int id, string name)
+    /// <summary>
+    /// Updates a board asynchronously.
+    /// </summary>
+    /// <param name="id">The board ID.</param>
+    /// <param name="name">The new name of the board.</param>
+    /// <returns>True if the update was successful, otherwise false.</returns>
+    public async Task<bool> UpdateBoardAsync(int id, string name)
     {
-        var board = _boards.FirstOrDefault(b => b.Id == id);
-        if (board == null) return System.Threading.Tasks.Task.FromResult(false);
+        var board = await this.context.Boards.FindAsync(id);
+        if (board == null)
+        {
+            return false;
+        }
         
         board.Name = name;
-        return System.Threading.Tasks.Task.FromResult(true);
+        await this.context.SaveChangesAsync();
+        return true;
     }
 
-    public System.Threading.Tasks.Task<bool> DeleteBoardAsync(int id)
+    /// <summary>
+    /// Deletes a board asynchronously.
+    /// </summary>
+    /// <param name="id">The board ID.</param>
+    /// <returns>True if the deletion was successful, otherwise false.</returns>
+    public async Task<bool> DeleteBoardAsync(int id)
     {
-        var board = _boards.FirstOrDefault(b => b.Id == id);
-        if (board == null) return System.Threading.Tasks.Task.FromResult(false);
+        var board = await this.context.Boards.FindAsync(id);
+        if (board == null)
+        {
+            return false;
+        }
         
-        _boards.Remove(board);
-        return System.Threading.Tasks.Task.FromResult(true);
+        this.context.Boards.Remove(board);
+        await this.context.SaveChangesAsync();
+        return true;
     }
 }

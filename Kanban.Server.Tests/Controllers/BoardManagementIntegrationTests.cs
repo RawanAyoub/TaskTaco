@@ -5,11 +5,11 @@ using Xunit;
 
 namespace Kanban.Server.Tests.Controllers;
 
-public class BoardManagementIntegrationTests : IClassFixture<WebApplicationFactory<Kanban.Server.Program>>
+public class BoardManagementIntegrationTests : IClassFixture<CustomWebApplicationFactory<Kanban.Server.Program>>
 {
-    private readonly WebApplicationFactory<Kanban.Server.Program> _factory;
+    private readonly CustomWebApplicationFactory<Kanban.Server.Program> _factory;
 
-    public BoardManagementIntegrationTests(WebApplicationFactory<Kanban.Server.Program> factory)
+    public BoardManagementIntegrationTests(CustomWebApplicationFactory<Kanban.Server.Program> factory)
     {
         _factory = factory;
     }
