@@ -6,10 +6,10 @@ import type {
   CreateColumnRequest,
   UpdateColumnRequest,
   MoveColumnRequest,
-  CreateTaskRequest,
-  UpdateTaskRequest,
   MoveTaskRequest,
 } from '../types/kanban';
+import type { TaskDto } from '../types/api';
+import { transformTaskDtoToTask, transformTaskToCreateRequest, transformTaskToUpdateRequest } from './transformers';
 
 const API_BASE_URL = 'http://localhost:5090/api';
 
@@ -104,20 +104,24 @@ class ApiClient {
 
   // Task API
   async getTasksByColumn(columnId: number): Promise<Task[]> {
-    return this.request<Task[]>(`/task/column/${columnId}`);
+    const taskDtos = await this.request<TaskDto[]>(`/task/column/${columnId}`);
+    return taskDtos.map(transformTaskDtoToTask);
   }
 
-  async createTask(data: CreateTaskRequest): Promise<Task> {
-    return this.request<Task>('/task', {
+  async createTask(task: Partial<Task>): Promise<Task> {
+    const createRequest = transformTaskToCreateRequest(task);
+    const taskDto = await this.request<TaskDto>('/task', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(createRequest),
     });
+    return transformTaskDtoToTask(taskDto);
   }
 
-  async updateTask(id: number, data: UpdateTaskRequest): Promise<void> {
+  async updateTask(id: number, task: Partial<Task>): Promise<void> {
+    const updateRequest = transformTaskToUpdateRequest(task);
     return this.request<void>(`/task/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: JSON.stringify(updateRequest),
     });
   }
 

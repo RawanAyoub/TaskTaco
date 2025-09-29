@@ -1,5 +1,6 @@
 using Kanban.Domain.Entities;
 using Kanban.Domain.Enums;
+using Kanban.Domain.ValueObjects;
 using Kanban.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,10 +35,13 @@ namespace Kanban.Application.Services
         /// <param name="description">The task description.</param>
         /// <param name="status">The task status.</param>
         /// <param name="priority">The task priority.</param>
+        /// <param name="dueDate">The optional due date for the task.</param>
+        /// <param name="labels">The list of labels for the task.</param>
+        /// <param name="checklist">The list of checklist items for the task.</param>
+        /// <param name="stickers">The list of sticker emojis for the task.</param>
         /// <returns>The created task.</returns>
-        Task<TaskEntity> CreateTaskAsync(int columnId, string title, string description, string status, Priority priority);
+        Task<TaskEntity> CreateTaskAsync(int columnId, string title, string description, string status, Priority priority, DateTime? dueDate = null, List<string>? labels = null, List<ChecklistItem>? checklist = null, List<string>? stickers = null);
 
-    /// <summary>
         /// <summary>
         /// Updates a task asynchronously.
         /// </summary>
@@ -46,8 +50,12 @@ namespace Kanban.Application.Services
         /// <param name="description">The new description.</param>
         /// <param name="status">The new status.</param>
         /// <param name="priority">The new priority.</param>
+        /// <param name="dueDate">The optional due date for the task.</param>
+        /// <param name="labels">The list of labels for the task.</param>
+        /// <param name="checklist">The list of checklist items for the task.</param>
+        /// <param name="stickers">The list of sticker emojis for the task.</param>
         /// <returns>True if the update was successful, otherwise false.</returns>
-        Task<bool> UpdateTaskAsync(int id, string title, string description, string status, Priority priority);
+        Task<bool> UpdateTaskAsync(int id, string title, string description, string status, Priority priority, DateTime? dueDate = null, List<string>? labels = null, List<ChecklistItem>? checklist = null, List<string>? stickers = null);
 
         /// <summary>
         /// Moves a task to a different column and position asynchronously.
@@ -139,7 +147,7 @@ public class TaskService : ITaskService
     /// <param name="status">The task status.</param>
     /// <param name="priority">The task priority.</param>
     /// <returns>The created task.</returns>
-    public async Task<TaskEntity> CreateTaskAsync(int columnId, string title, string description, string status, Priority priority)
+    public async Task<TaskEntity> CreateTaskAsync(int columnId, string title, string description, string status, Priority priority, DateTime? dueDate = null, List<string>? labels = null, List<ChecklistItem>? checklist = null, List<string>? stickers = null)
     {
         // Get the next order position for the column
         var maxOrder = await this.context.Tasks
@@ -152,9 +160,26 @@ public class TaskService : ITaskService
             Description = description,
             Status = status,
             Priority = priority,
+            DueDate = dueDate,
             ColumnId = columnId,
             Order = maxOrder + 1,
         };
+
+        // Set enhanced fields if provided
+        if (labels != null)
+        {
+            task.SetLabels(labels);
+        }
+
+        if (checklist != null)
+        {
+            task.SetChecklist(checklist);
+        }
+
+        if (stickers != null)
+        {
+            task.SetStickers(stickers);
+        }
 
         this.context.Tasks.Add(task);
         await this.context.SaveChangesAsync();
@@ -169,8 +194,12 @@ public class TaskService : ITaskService
     /// <param name="description">The new description.</param>
     /// <param name="status">The new status.</param>
     /// <param name="priority">The new priority.</param>
+    /// <param name="dueDate">The optional due date for the task.</param>
+    /// <param name="labels">The list of labels for the task.</param>
+    /// <param name="checklist">The list of checklist items for the task.</param>
+    /// <param name="stickers">The list of sticker emojis for the task.</param>
     /// <returns>True if the update was successful, otherwise false.</returns>
-    public async Task<bool> UpdateTaskAsync(int id, string title, string description, string status, Priority priority)
+    public async Task<bool> UpdateTaskAsync(int id, string title, string description, string status, Priority priority, DateTime? dueDate = null, List<string>? labels = null, List<ChecklistItem>? checklist = null, List<string>? stickers = null)
     {
         var task = await this.context.Tasks.FindAsync(id);
         if (task == null)
@@ -182,6 +211,23 @@ public class TaskService : ITaskService
         task.Description = description;
         task.Status = status;
         task.Priority = priority;
+        task.DueDate = dueDate;
+
+        // Update enhanced fields if provided
+        if (labels != null)
+        {
+            task.SetLabels(labels);
+        }
+
+        if (checklist != null)
+        {
+            task.SetChecklist(checklist);
+        }
+
+        if (stickers != null)
+        {
+            task.SetStickers(stickers);
+        }
 
         await this.context.SaveChangesAsync();
         return true;

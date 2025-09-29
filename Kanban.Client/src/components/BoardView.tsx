@@ -12,7 +12,10 @@ import { useEffect, useMemo, useState } from 'react';
 import type { FC } from 'react';
 import { Columns } from '@/services/columns';
 import { Tasks } from '@/services/tasks';
-import type { ColumnDto, TaskDto } from '@/types/api';
+import type { ColumnDto } from '@/types/api';
+import type { Task } from '@/types/kanban';
+import { Priority } from '@/types/enums';
+import { transformTaskDtoToTask } from '@/services/transformers';
 import { Button } from '@/components/ui/button';
 import { Trash2, Pencil, Plus } from 'lucide-react';
 import { AIPrdExportModal } from '@/components/AIPrdExportModal';
@@ -25,13 +28,25 @@ const colorFor = (name: string) => {
   return '#6B7280'; // planned/other
 };
 
+const getPriorityName = (priority: Priority): string => {
+  switch (priority) {
+    case Priority.High:
+      return 'High';
+    case Priority.Low:
+      return 'Low';
+    case Priority.Medium:
+    default:
+      return 'Medium';
+  }
+};
+
 interface BoardViewProps {
   boardId: number;
 }
 
 const BoardView: FC<BoardViewProps> = ({ boardId }) => {
   const [columns, setColumns] = useState<ColumnDto[]>([]);
-  const [tasksByColumn, setTasksByColumn] = useState<Record<number, TaskDto[]>>({});
+  const [tasksByColumn, setTasksByColumn] = useState<Record<number, Task[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,12 +62,13 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
 
         const entries = await Promise.all(
           cols.map(async (c) => {
-            const ts = await Tasks.byColumn(c.id);
-            return [c.id, ts] as const;
+            const taskDtos = await Tasks.byColumn(c.id);
+            const tasks = taskDtos.map(transformTaskDtoToTask);
+            return [c.id, tasks] as const;
           })
         );
         if (cancelled) return;
-        const map: Record<number, TaskDto[]> = {};
+        const map: Record<number, Task[]> = {};
         for (const [cid, ts] of entries) map[cid] = ts;
         setTasksByColumn(map);
         setError(null);
@@ -129,7 +145,8 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
 
     try {
       // Create task on server first to avoid duplication
-      const created = await Tasks.create({ columnId, title, description, status, priority });
+      const createdDto = await Tasks.create({ columnId, title, description, status, priority });
+      const created = transformTaskDtoToTask(createdDto);
       
       // Only update state after successful creation
       setTasksByColumn((m) => ({
@@ -142,7 +159,7 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
     }
   };
 
-  const handleDeleteTask = async (task: TaskDto) => {
+  const handleDeleteTask = async (task: Task) => {
     const colId = task.columnId;
     const prev = structuredClone(tasksByColumn);
     // optimistic remove
@@ -163,12 +180,27 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
     const task = Object.values(tasksByColumn).flat().find(t => t.id === taskId);
     if (!task) return;
     
+    // Convert priority string to enum
+    let priorityEnum: Priority;
+    switch (priority.toLowerCase()) {
+      case 'high':
+        priorityEnum = Priority.High;
+        break;
+      case 'low':
+        priorityEnum = Priority.Low;
+        break;
+      case 'medium':
+      default:
+        priorityEnum = Priority.Medium;
+        break;
+    }
+    
     const colId = task.columnId;
     const prev = structuredClone(tasksByColumn);
     // optimistic change
     setTasksByColumn((m) => ({
       ...m,
-      [colId]: (m[colId] ?? []).map((t) => (t.id === taskId ? { ...t, title, description, priority } : t)),
+      [colId]: (m[colId] ?? []).map((t) => (t.id === taskId ? { ...t, title, description, priority: priorityEnum } : t)),
     }));
     
     try {
@@ -243,9 +275,9 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
                     <div className="flex flex-col gap-1 flex-1">
                       <div className="flex items-center gap-2">
                         <p className="m-0 font-medium text-sm">{task.title}</p>
-                        {task.priority && task.priority !== '' && (
-                          <span className="text-xs" title={`Priority: ${task.priority}`}>
-                            {task.priority === 'High' ? '🔴' : task.priority === 'Medium' ? '🟡' : '🟢'}
+                        {task.priority && (
+                          <span className="text-xs" title={`Priority: ${getPriorityName(task.priority)}`}>
+                            {task.priority === Priority.High ? '🔴' : task.priority === Priority.Medium ? '🟡' : '🟢'}
                           </span>
                         )}
                       </div>

@@ -11,13 +11,13 @@ public class UserTests
         // Arrange & Act
         var user = new User
         {
-            Id = 1,
+            Id = "user123",
             Name = "John Doe",
             Email = "john@example.com"
         };
 
         // Assert
-        Assert.Equal(1, user.Id);
+        Assert.Equal("user123", user.Id);
         Assert.Equal("John Doe", user.Name);
         Assert.Equal("john@example.com", user.Email);
     }

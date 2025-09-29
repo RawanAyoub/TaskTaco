@@ -1,4 +1,5 @@
 using Kanban.Domain.Entities;
+using Kanban.Domain.Enums;
 using Xunit;
 
 namespace Kanban.Server.Tests.Domain;
@@ -15,12 +16,15 @@ public class TaskTests
             Title = "Implement login",
             Description = "Add user authentication",
             Status = "To Do",
-            Priority = "High",
+            Priority = Priority.High,
             DueDate = DateTime.Now.AddDays(7),
-            Tags = "backend,auth",
-            Attachments = "",
+            Labels = "[\"backend\",\"auth\"]",
+            Checklist = "[]",
+            Stickers = "[\"🔐\"]",
             ColumnId = 1,
-            Order = 0
+            Order = 0,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
         // Assert
@@ -28,9 +32,11 @@ public class TaskTests
         Assert.Equal("Implement login", task.Title);
         Assert.Equal("Add user authentication", task.Description);
         Assert.Equal("To Do", task.Status);
-        Assert.Equal("High", task.Priority);
+        Assert.Equal(Priority.High, task.Priority);
         Assert.Equal(1, task.ColumnId);
         Assert.Equal(0, task.Order);
+        Assert.Contains("backend", task.GetLabels());
+        Assert.Contains("auth", task.GetLabels());
     }
 
     [Fact]

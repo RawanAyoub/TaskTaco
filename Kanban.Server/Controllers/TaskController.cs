@@ -1,9 +1,31 @@
 using Kanban.Application.Services;
 using Kanban.Domain.Entities;
 using Kanban.Domain.Enums;
+using Kanban.Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kanban.Server.Controllers;
+
+/// <summary>
+/// Request model for checklist item data.
+/// </summary>
+public class ChecklistItemRequest
+{
+    /// <summary>
+    /// Gets or sets the unique identifier for the checklist item.
+    /// </summary>
+    public string Id { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the text content of the checklist item.
+    /// </summary>
+    public string Text { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the checklist item is completed.
+    /// </summary>
+    public bool Done { get; set; }
+}
 
 /// <summary>
 /// Controller for managing tasks.
@@ -66,12 +88,20 @@ public class TaskController : ControllerBase
             priority = Priority.Medium; // Default to Medium if parsing fails
         }
 
+        // Convert checklist items from request to domain objects
+        var checklist = request.Checklist?.Select(item =>
+            new ChecklistItem(item.Id, item.Text, item.Done)).ToList();
+
         var task = await this.taskService.CreateTaskAsync(
             request.ColumnId,
             request.Title,
             request.Description,
             request.Status,
-            priority);
+            priority,
+            request.DueDate,
+            request.Labels,
+            checklist,
+            request.Stickers);
 
         return this.CreatedAtAction(nameof(this.GetTask), new { id = task.Id }, task);
     }
@@ -91,12 +121,20 @@ public class TaskController : ControllerBase
             priority = Priority.Medium; // Default to Medium if parsing fails
         }
 
+        // Convert checklist items from request to domain objects
+        var checklist = request.Checklist?.Select(item =>
+            new ChecklistItem(item.Id, item.Text, item.Done)).ToList();
+
         var success = await this.taskService.UpdateTaskAsync(
             id,
             request.Title,
             request.Description,
             request.Status,
-            priority);
+            priority,
+            request.DueDate,
+            request.Labels,
+            checklist,
+            request.Stickers);
 
         if (!success)
         {
@@ -171,6 +209,26 @@ public class CreateTaskRequest
     /// Gets or sets the task priority.
     /// </summary>
     public string Priority { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the due date of the task.
+    /// </summary>
+    public DateTime? DueDate { get; set; }
+
+    /// <summary>
+    /// Gets or sets the labels associated with the task.
+    /// </summary>
+    public List<string>? Labels { get; set; }
+
+    /// <summary>
+    /// Gets or sets the checklist items for the task.
+    /// </summary>
+    public List<ChecklistItemRequest>? Checklist { get; set; }
+
+    /// <summary>
+    /// Gets or sets the sticker emojis for the task.
+    /// </summary>
+    public List<string>? Stickers { get; set; }
 }
 
 /// <summary>
@@ -197,6 +255,26 @@ public class UpdateTaskRequest
     /// Gets or sets the task priority.
     /// </summary>
     public string Priority { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the due date of the task.
+    /// </summary>
+    public DateTime? DueDate { get; set; }
+
+    /// <summary>
+    /// Gets or sets the labels associated with the task.
+    /// </summary>
+    public List<string>? Labels { get; set; }
+
+    /// <summary>
+    /// Gets or sets the checklist items for the task.
+    /// </summary>
+    public List<ChecklistItemRequest>? Checklist { get; set; }
+
+    /// <summary>
+    /// Gets or sets the sticker emojis for the task.
+    /// </summary>
+    public List<string>? Stickers { get; set; }
 }
 
 /// <summary>

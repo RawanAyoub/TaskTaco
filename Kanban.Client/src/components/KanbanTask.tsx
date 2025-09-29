@@ -1,7 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Task } from '../types/kanban';
-import { Priority, getPriorityLabel, getPriorityColor } from '../types/enums';
+import { getPriorityLabel, getPriorityColor } from '../types/enums';
 import { Card, CardContent } from './ui/card';
 import { cn } from '@/lib/utils';
 import { format, parseISO, isPast } from 'date-fns';

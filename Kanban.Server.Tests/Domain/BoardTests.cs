@@ -13,13 +13,13 @@ public class BoardTests
         {
             Id = 1,
             Name = "My Board",
-            UserId = 1
+            UserId = "user123"
         };
 
         // Assert
         Assert.Equal(1, board.Id);
         Assert.Equal("My Board", board.Name);
-        Assert.Equal(1, board.UserId);
+        Assert.Equal("user123", board.UserId);
     }
 
     [Fact]

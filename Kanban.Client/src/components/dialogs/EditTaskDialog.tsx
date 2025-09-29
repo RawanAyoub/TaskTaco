@@ -13,10 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
-import type { TaskDto } from '@/types/api';
+import type { Task } from '@/types/kanban';
+import { Priority } from '@/types/enums';
 
 interface EditTaskDialogProps {
-  task: TaskDto;
+  task: Task;
   onTaskUpdate: (taskId: number, title: string, description: string, priority: string) => Promise<void>;
   trigger: React.ReactNode;
 }
@@ -25,10 +26,22 @@ export function EditTaskDialog({ task, onTaskUpdate, trigger }: EditTaskDialogPr
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const getPriorityString = (priority: Priority): string => {
+    switch (priority) {
+      case Priority.High:
+        return 'High';
+      case Priority.Low:
+        return 'Low';
+      case Priority.Medium:
+      default:
+        return 'Medium';
+    }
+  };
+
   const [formData, setFormData] = useState({
     title: task.title,
     description: task.description || '',
-    priority: task.priority || 'Medium',
+    priority: getPriorityString(task.priority),
   });
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
