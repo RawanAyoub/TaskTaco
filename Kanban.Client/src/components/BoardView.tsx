@@ -262,7 +262,61 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
           />
         </div>
       </div>
-      <KanbanProvider onDragEnd={handleDragEnd}>
+      <KanbanProvider 
+        onDragEnd={handleDragEnd}
+        draggedTaskContent={(taskId) => {
+          // Find the task by ID across all columns
+          const task = Object.values(tasksByColumn)
+            .flat()
+            .find(t => t.id.toString() === taskId);
+          
+          if (!task) return null;
+          
+          return (
+            <KanbanCard
+              key={task.id}
+              id={task.id.toString()}
+              name={task.title}
+              index={0}
+              parent="dragging"
+              className="shadow-2xl scale-105 rotate-2 opacity-95 bg-card border-border"
+            >
+              <div className="space-y-2">
+                <p className="m-0 font-medium text-sm">{task.title}</p>
+                {task.description && (
+                  <p className="m-0 text-xs text-muted-foreground line-clamp-2">{task.description}</p>
+                )}
+                {task.priority !== Priority.Medium && (
+                  <div className="text-xs text-muted-foreground">
+                    Priority: {getPriorityName(task.priority)}
+                  </div>
+                )}
+                {task.dueDate && (
+                  <div className="text-xs text-muted-foreground">
+                    Due: {task.dueDate}
+                  </div>
+                )}
+                {Array.isArray(task.labels) && task.labels.length > 0 && (
+                  <div className="flex gap-1 flex-wrap">
+                    {task.labels.map((label, idx) => (
+                      <span key={idx} className="px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {Array.isArray(task.stickers) && task.stickers.length > 0 && (
+                  <div className="flex gap-1">
+                    {task.stickers.map((sticker, idx) => (
+                      <span key={idx} className="text-sm">{sticker}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </KanbanCard>
+          );
+        }}
+      >
       {statuses.map((status) => {
         const col = columns.find((c) => c.name === status.name);
         const colId = col?.id ?? 0;

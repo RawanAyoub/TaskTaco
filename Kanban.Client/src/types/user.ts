@@ -45,20 +45,20 @@ export const THEME_CONFIG = {
   [AVAILABLE_THEMES.CLASSIC_TACO]: {
     name: 'Classic Taco',
     emoji: '🌮',
-    primary: 'hsl(25, 95%, 53%)', // Orange
-    description: 'The original TaskTaco experience with warm orange tones'
+    primary: 'hsl(217 119 6)', // amber-600
+    description: 'The original TaskTaco experience with warm amber and lime tones'
   },
   [AVAILABLE_THEMES.GUACAMOLE]: {
     name: 'Guacamole', 
     emoji: '🥑',
-    primary: 'hsl(84, 69%, 74%)', // Green
-    description: 'Fresh and smooth like perfectly ripe avocado'
+    primary: 'hsl(101 163 13)', // lime-600
+    description: 'Fresh and smooth like perfectly ripe avocado with lime greens'
   },
   [AVAILABLE_THEMES.SALSA]: {
     name: 'Salsa',
     emoji: '🌶️', 
-    primary: 'hsl(0, 84%, 60%)', // Red
-    description: 'Spicy and energetic red theme for high-intensity work'
+    primary: 'hsl(225 29 72)', // rose-600
+    description: 'Spicy and energetic rose and red theme for high-intensity work'
   }
 } as const;
 

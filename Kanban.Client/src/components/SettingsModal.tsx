@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
@@ -20,6 +20,7 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
   const [selectedEmoji, setSelectedEmoji] = useState('🌮');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const originalThemeRef = useRef<ThemeName | null>(null);
 
   // Load current settings when modal opens
   useEffect(() => {
@@ -27,6 +28,17 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
       loadSettings();
     }
   }, [isOpen]);
+
+  // Apply theme instantly when selection changes (for preview)
+  useEffect(() => {
+    console.log('SettingsModal useEffect triggered - isOpen:', isOpen, 'selectedTheme:', selectedTheme);
+    if (isOpen) {
+      console.log('Applying theme from useEffect:', selectedTheme);
+      applyTheme(selectedTheme);
+      // Temporarily update cache for immediate effect (will be reverted if cancelled)
+      settingsService.setCachedTheme(selectedTheme);
+    }
+  }, [selectedTheme, isOpen]);
 
   const loadSettings = async () => {
     try {
@@ -37,14 +49,19 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
       try {
         const userSettings = await settingsService.getUserSettings();
         setSettings(userSettings);
-        setSelectedTheme(userSettings.theme as ThemeName);
+        const currentTheme = userSettings.theme as ThemeName;
+        setSelectedTheme(currentTheme);
         setSelectedEmoji(userSettings.defaultEmoji);
+        // Store original theme for potential cancellation
+        originalThemeRef.current = currentTheme;
       } catch (apiError) {
         // Fallback to cached settings
         const cachedTheme = settingsService.getCachedTheme() as ThemeName;
         const cachedEmoji = settingsService.getCachedDefaultEmoji();
         setSelectedTheme(cachedTheme);
         setSelectedEmoji(cachedEmoji);
+        // Store original theme for potential cancellation
+        originalThemeRef.current = cachedTheme;
       }
     } catch (err) {
       setError('Failed to load settings');
@@ -59,6 +76,8 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
       setLoading(true);
       setError(null);
 
+
+
       const updateData: UpdateUserSettingsRequest = {
         theme: selectedTheme,
         defaultEmoji: selectedEmoji,
@@ -66,10 +85,12 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
 
       // Update via API
       const updatedSettings = await settingsService.updateUserSettings(updateData);
+
       
       // Update cached values for immediate UI response
       settingsService.setCachedTheme(selectedTheme);
       settingsService.setCachedDefaultEmoji(selectedEmoji);
+
       
       // Apply theme immediately
       applyTheme(selectedTheme);
@@ -91,22 +112,51 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
   };
 
   const applyTheme = (theme: ThemeName) => {
-    // Remove existing theme classes
+    // Remove existing theme classes from both html and body
     document.documentElement.classList.remove('theme-classic-taco', 'theme-guacamole', 'theme-salsa');
+    document.body.classList.remove('theme-classic-taco', 'theme-guacamole', 'theme-salsa');
     
     // Add new theme class
     const themeClass = `theme-${theme.toLowerCase().replace(/\s+/g, '-')}`;
     document.documentElement.classList.add(themeClass);
+    document.body.classList.add(themeClass);
     
-    // Update CSS custom properties for immediate effect
-    const config = THEME_CONFIG[theme];
-    document.documentElement.style.setProperty('--tasktaco-primary', config.primary);
+    // Debug logging
+
+    
+    // Force a style recalculation and repaint
+    document.documentElement.offsetHeight;
+    document.body.offsetHeight;
+    
+    // Also try setting CSS variables directly as backup
+    let primaryColor = '217 119 6'; // default amber for Classic Taco
+    
+    if (theme === 'Classic Taco') {
+      primaryColor = '217 119 6'; // amber-600
+    } else if (theme === 'Guacamole') {
+      primaryColor = '101 163 13'; // lime-600
+    } else if (theme === 'Salsa') {
+      primaryColor = '225 29 72'; // rose-600
+    }
+    
+    document.documentElement.style.setProperty('--primary', primaryColor);
+    console.log('Theme:', theme, 'Primary color set to:', primaryColor);
+    console.log('CSS variable value:', document.documentElement.style.getPropertyValue('--primary'));
+    
+    // Dispatch custom event to notify other components about theme change
+    console.log('Dispatching themeChanged event for:', theme);
+    window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme } }));
   };
 
   const handleCancel = () => {
-    // Reset to original values
+    // Reset to original values and revert theme
+    if (originalThemeRef.current) {
+      setSelectedTheme(originalThemeRef.current);
+      applyTheme(originalThemeRef.current);
+      // Revert cache to original theme
+      settingsService.setCachedTheme(originalThemeRef.current);
+    }
     if (settings) {
-      setSelectedTheme(settings.theme as ThemeName);
       setSelectedEmoji(settings.defaultEmoji);
     }
     onClose();
@@ -143,7 +193,10 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
                       name="theme"
                       value={theme}
                       checked={selectedTheme === theme}
-                      onChange={(e) => setSelectedTheme(e.target.value as ThemeName)}
+                      onChange={(e) => {
+
+                        setSelectedTheme(e.target.value as ThemeName);
+                      }}
                       className="w-4 h-4 text-tasktaco-600 border-gray-300 focus:ring-tasktaco-500"
                     />
                     <label htmlFor={theme} className="flex items-center gap-3 cursor-pointer flex-1">

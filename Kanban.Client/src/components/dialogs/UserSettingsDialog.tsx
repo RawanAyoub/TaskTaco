@@ -20,6 +20,9 @@ interface UserSettingsDialogProps {
   trigger?: React.ReactNode;
 }
 
+const EMOJI_OPTIONS = ['🌮', '🥑', '🌶️', '🚀', '⭐', '🎯', '🔥', '💡', '✨', '🏆'];
+const DEFAULT_EMOJI = '🌮';
+
 export function UserSettingsDialog({ trigger }: UserSettingsDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -97,6 +100,58 @@ export function UserSettingsDialog({ trigger }: UserSettingsDialogProps) {
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (error) setError(null);
+    
+    // Apply theme instantly when theme is changed
+    if (field === 'theme') {
+
+      applyTheme(value);
+    }
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    setFormData(prev => ({ ...prev, defaultEmoji: emoji }));
+    if (error) setError(null);
+  };
+
+  const handleResetEmoji = () => {
+    setFormData(prev => ({ ...prev, defaultEmoji: DEFAULT_EMOJI }));
+    if (error) setError(null);
+  };
+
+  const applyTheme = (theme: string) => {
+    // Remove existing theme classes from both html and body
+    document.documentElement.classList.remove('theme-classic-taco', 'theme-guacamole', 'theme-salsa');
+    document.body.classList.remove('theme-classic-taco', 'theme-guacamole', 'theme-salsa');
+    
+    // Add new theme class
+    const themeClass = `theme-${theme.toLowerCase().replace(/\s+/g, '-')}`;
+    document.documentElement.classList.add(themeClass);
+    document.body.classList.add(themeClass);
+    
+    // Debug logging
+
+    
+    // Force a style recalculation and repaint
+    document.documentElement.offsetHeight;
+    document.body.offsetHeight;
+    
+    // Set CSS variables directly as backup
+    let primaryColor = '217 119 6'; // default amber for Classic Taco
+    
+    if (theme === 'Classic Taco') {
+      primaryColor = '217 119 6'; // amber-600
+    } else if (theme === 'Guacamole') {
+      primaryColor = '101 163 13'; // lime-600
+    } else if (theme === 'Salsa') {
+      primaryColor = '225 29 72'; // rose-600
+    }
+    
+    document.documentElement.style.setProperty('--primary', primaryColor);
+    console.log('Theme:', theme, 'Primary color set to:', primaryColor);
+    
+    // Dispatch custom event to notify App component
+    console.log('Dispatching themeChanged event for:', theme);
+    window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme } }));
   };
 
   const defaultTrigger = (
@@ -148,18 +203,58 @@ export function UserSettingsDialog({ trigger }: UserSettingsDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="defaultEmoji">Default Task Emoji</Label>
-              <Input
-                id="defaultEmoji"
-                type="text"
-                value={formData.defaultEmoji}
-                onChange={(e) => handleInputChange('defaultEmoji', e.target.value)}
-                placeholder="🌮"
-                maxLength={10}
-                className="text-center text-2xl"
-              />
+              <div className="flex items-center justify-between">
+                <Label htmlFor="defaultEmoji">Default Task Emoji</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleResetEmoji}
+                  disabled={formData.defaultEmoji === DEFAULT_EMOJI}
+                  className="text-xs"
+                >
+                  Reset to 🌮
+                </Button>
+              </div>
+              
+              {/* Visual Emoji Selector */}
+              <div className="grid grid-cols-5 gap-2">
+                {EMOJI_OPTIONS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    className={`p-3 text-xl border rounded-md hover:bg-accent transition-colors ${
+                      formData.defaultEmoji === emoji 
+                        ? 'border-primary bg-primary/10 ring-2 ring-primary/20' 
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => handleEmojiSelect(emoji)}
+                    title={`Select ${emoji} as default emoji`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Show selected emoji and allow custom input */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Selected:</span>
+                  <span className="text-2xl">{formData.defaultEmoji}</span>
+                </div>
+                <Input
+                  id="defaultEmoji"
+                  type="text"
+                  value={formData.defaultEmoji}
+                  onChange={(e) => handleInputChange('defaultEmoji', e.target.value)}
+                  placeholder="🌮"
+                  maxLength={10}
+                  className="text-center text-lg"
+                />
+              </div>
+              
               <p className="text-xs text-muted-foreground">
-                This emoji will be used as the default for new tasks
+                Click a sticker above or type a custom emoji. This will be used as the default for new tasks.
               </p>
             </div>
 
@@ -172,7 +267,11 @@ export function UserSettingsDialog({ trigger }: UserSettingsDialogProps) {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={saving}>
+              <Button 
+                type="submit" 
+                disabled={saving}
+                style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}
+              >
                 {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Save Settings
               </Button>

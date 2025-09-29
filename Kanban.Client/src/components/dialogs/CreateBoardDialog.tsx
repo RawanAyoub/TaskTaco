@@ -94,7 +94,10 @@ export function CreateBoardDialog({ onBoardCreated, trigger }: CreateBoardDialog
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md transition-all duration-200">
+          <Button 
+            className="shadow-md transition-all duration-200"
+            style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Create Board
           </Button>
@@ -170,6 +173,7 @@ export function CreateBoardDialog({ onBoardCreated, trigger }: CreateBoardDialog
               type="submit"
               disabled={!formData.name.trim() || isCreating}
               className="min-w-[100px]"
+              style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}
             >
               {isCreating ? (
                 <>

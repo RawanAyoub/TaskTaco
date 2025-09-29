@@ -80,6 +80,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode }) => {
             type="submit" 
             className="w-full" 
             disabled={isLoading || !email || !password}
+            style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}
           >
             {isLoading ? (
               <>
@@ -98,6 +99,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode }) => {
               onClick={onToggleMode}
               disabled={isLoading}
               className="text-sm"
+              style={{ color: 'hsl(var(--secondary))' }}
             >
               Don't have an account? Sign up
             </Button>

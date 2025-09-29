@@ -175,9 +175,9 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto" onKeyDown={handleKeyDown}>
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto bg-background text-foreground border shadow-2xl" onKeyDown={handleKeyDown}>
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-foreground font-semibold">
             Create New Task
             {columnName && <span className="text-muted-foreground"> in {columnName}</span>}
           </DialogTitle>
@@ -217,9 +217,9 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
             <TabsContent value="basic" className="space-y-4 mt-4">
               {/* Task Title */}
               <div className="space-y-2">
-                <Label htmlFor="task-title">
+                <Label htmlFor="task-title" className="text-foreground font-medium">
                   Title *
-                  <span className={`ml-2 text-xs ${isTitleNearLimit ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                  <span className={`ml-2 text-xs ${isTitleNearLimit ? 'text-yellow-600' : 'text-muted-foreground'}`}>
                     ({titleCharCount}/100)
                   </span>
                 </Label>
@@ -236,9 +236,9 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
 
               {/* Task Description */}
               <div className="space-y-2">
-                <Label htmlFor="task-description">
+                <Label htmlFor="task-description" className="text-foreground font-medium">
                   Description
-                  <span className={`ml-2 text-xs ${isDescriptionNearLimit ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                  <span className={`ml-2 text-xs ${isDescriptionNearLimit ? 'text-yellow-600' : 'text-muted-foreground'}`}>
                     ({descriptionCharCount}/500)
                   </span>
                 </Label>
@@ -255,12 +255,12 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
 
               {/* Priority Selection */}
               <div className="space-y-2">
-                <Label htmlFor="task-priority">Priority</Label>
+                <Label htmlFor="task-priority" className="text-foreground font-medium">Priority</Label>
                 <select
                   id="task-priority"
                   value={formData.priority}
                   onChange={(e) => handleInputChange('priority', e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-background/95 backdrop-blur-sm px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ring-1 ring-black/5 dark:ring-white/10"
+                  className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 >
                   <option value="Low">🟢 Low</option>
                   <option value="Medium">🟡 Medium</option>
@@ -299,13 +299,13 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
 
           {/* Error Message */}
           {error && (
-            <div className="text-sm text-destructive bg-destructive/10 p-2 rounded-md">
+            <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 p-3 rounded-md">
               {error}
             </div>
           )}
 
           {/* Form Actions */}
-          <div className="flex justify-between pt-4 border-t">
+          <div className="flex justify-between pt-4 border-t border-border">
             <div className="text-xs text-muted-foreground">
               Tip: Press Ctrl+Enter to create
             </div>
@@ -321,7 +321,7 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
               <Button 
                 type="submit" 
                 disabled={isCreating || !formData.title.trim()}
-                className="min-w-[80px]"
+                className="min-w-[80px] bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {isCreating ? (
                   <>

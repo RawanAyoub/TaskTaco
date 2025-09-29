@@ -170,7 +170,11 @@ export function UserProfileDialog({ trigger }: UserProfileDialogProps) {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={saving}>
+              <Button 
+                type="submit" 
+                disabled={saving}
+                style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}
+              >
                 {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Save Profile
               </Button>

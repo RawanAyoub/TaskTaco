@@ -97,10 +97,10 @@ export function EditTaskDialog({ task, onTaskUpdate, trigger }: EditTaskDialogPr
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]" onKeyDown={handleKeyDown}>
+      <DialogContent className="sm:max-w-[500px] bg-background text-foreground" onKeyDown={handleKeyDown}>
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Edit Task</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-xl font-semibold text-foreground">Edit Task</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Make changes to your task. Press Ctrl+Enter to save quickly.
           </DialogDescription>
         </DialogHeader>
@@ -108,7 +108,7 @@ export function EditTaskDialog({ task, onTaskUpdate, trigger }: EditTaskDialogPr
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Task Title */}
           <div className="space-y-2">
-            <Label htmlFor="task-title">
+            <Label htmlFor="task-title" className="text-foreground font-medium">
               Title <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -126,7 +126,7 @@ export function EditTaskDialog({ task, onTaskUpdate, trigger }: EditTaskDialogPr
 
           {/* Task Description */}
           <div className="space-y-2">
-            <Label htmlFor="task-description">Description</Label>
+            <Label htmlFor="task-description" className="text-foreground font-medium">Description</Label>
             <Textarea
               id="task-description"
               value={formData.description}
@@ -142,12 +142,12 @@ export function EditTaskDialog({ task, onTaskUpdate, trigger }: EditTaskDialogPr
 
           {/* Priority Selection */}
           <div className="space-y-2">
-            <Label htmlFor="task-priority">Priority</Label>
+            <Label htmlFor="task-priority" className="text-foreground font-medium">Priority</Label>
             <select
               id="task-priority"
               value={formData.priority}
               onChange={(e) => handleInputChange('priority', e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-background/95 backdrop-blur-sm px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ring-1 ring-black/5 dark:ring-white/10"
+              className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               <option value="Low">🟢 Low</option>
               <option value="Medium">🟡 Medium</option>
@@ -157,7 +157,7 @@ export function EditTaskDialog({ task, onTaskUpdate, trigger }: EditTaskDialogPr
 
           {/* Error Message */}
           {error && (
-            <div className="text-sm text-destructive bg-destructive/10 p-2 rounded-md">
+            <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 p-3 rounded-md">
               {error}
             </div>
           )}
@@ -175,7 +175,7 @@ export function EditTaskDialog({ task, onTaskUpdate, trigger }: EditTaskDialogPr
             <Button
               type="submit"
               disabled={loading || !formData.title.trim()}
-              className="min-w-[120px]"
+              className="min-w-[120px] bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {loading ? (
                 <>

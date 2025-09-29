@@ -7,8 +7,13 @@ import {
   rectIntersection,
   useDraggable,
   useDroppable,
+  DragOverlay,
+  useSensor,
+  useSensors,
+  PointerSensor,
 } from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 
 export type Status = {
@@ -86,7 +91,7 @@ export const KanbanCard = ({
       data-task-id={id}
       className={cn(
         'rounded-lg p-3 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 bg-card border-border text-card-foreground',
-        isDragging && 'cursor-grabbing',
+        isDragging && 'opacity-0 cursor-grabbing',
         className
       )}
       // Fallback styles in case Tailwind isn't applied at runtime
@@ -143,27 +148,94 @@ export type KanbanProviderProps = {
   children: ReactNode;
   onDragEnd: (event: DragEndEvent) => void;
   className?: string;
+  draggedTaskContent?: (taskId: string) => ReactNode;
 };
 
 export const KanbanProvider = ({
   children,
   onDragEnd,
   className,
-}: KanbanProviderProps) => (
-  <DndContext collisionDetection={rectIntersection} onDragEnd={onDragEnd}>
-    <div
-      className={cn('grid w-full auto-cols-fr grid-flow-col gap-4', className)}
-      // Fallback layout styles for columns when Tailwind isn’t active
-      style={{
-        display: 'grid',
-        gridAutoFlow: 'column',
-        gridAutoColumns: '1fr',
-        gap: '1rem',
-        width: '100%',
-        alignItems: 'start',
-      }}
+  draggedTaskContent,
+}: KanbanProviderProps) => {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [isDropping, setIsDropping] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Require 8px movement before drag starts
+      },
+    })
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+    setIsDropping(false);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    if (activeId) {
+      // Start drop animation
+      setIsDropping(true);
+      
+      // Call parent handler immediately for state updates
+      onDragEnd(event);
+      
+      // Clear the overlay after animation completes
+      setTimeout(() => {
+        setActiveId(null);
+        setIsDropping(false);
+      }, 300); // Match animation duration
+    }
+  };
+
+  const handleDragCancel = () => {
+    setActiveId(null);
+  };
+
+  return (
+    <DndContext 
+      collisionDetection={rectIntersection} 
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
+      sensors={sensors}
     >
-      {children}
-    </div>
-  </DndContext>
-);
+      <div
+        className={cn('grid w-full auto-cols-fr grid-flow-col gap-4', className)}
+        // Fallback layout styles for columns when Tailwind isn't active
+        style={{
+          display: 'grid',
+          gridAutoFlow: 'column',
+          gridAutoColumns: '1fr',
+          gap: '1rem',
+          width: '100%',
+          alignItems: 'start',
+        }}
+      >
+        {children}
+      </div>
+      <DragOverlay
+        className={cn(
+          'transition-all duration-300 ease-out',
+          isDropping && 'animate-drop-fade-out'
+        )}
+      >
+        {activeId ? (
+          <div className={cn(
+            'transition-all duration-300 ease-out',
+            isDropping && 'scale-95 opacity-0'
+          )}>
+            {draggedTaskContent ? (
+              draggedTaskContent(activeId)
+            ) : (
+              <Card className="rounded-lg p-3 shadow-2xl bg-card/95 backdrop-blur-sm border-border text-card-foreground scale-105 rotate-2 opacity-95 pointer-events-none">
+                <p className="m-0 font-medium text-sm">Moving task...</p>
+              </Card>
+            )}
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
+  );
+};

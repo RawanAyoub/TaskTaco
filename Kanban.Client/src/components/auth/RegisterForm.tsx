@@ -124,6 +124,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
             type="submit" 
             className="w-full" 
             disabled={isLoading || !isFormValid}
+            style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}
           >
             {isLoading ? (
               <>
@@ -142,6 +143,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleMode }) => {
               onClick={onToggleMode}
               disabled={isLoading}
               className="text-sm"
+              style={{ color: 'hsl(var(--secondary))' }}
             >
               Already have an account? Sign in
             </Button>

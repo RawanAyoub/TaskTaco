@@ -123,7 +123,7 @@ export function LabelManager({
 
           {/* Suggestions */}
           {showSuggestions && availableSuggestions.length > 0 && (
-            <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg">
+            <div className="absolute z-10 w-full mt-1 bg-background/95 backdrop-blur-md border rounded-md shadow-lg">
               {availableSuggestions.map((suggestion) => (
                 <button
                   key={suggestion}

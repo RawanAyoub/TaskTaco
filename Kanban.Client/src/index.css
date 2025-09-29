@@ -56,4 +56,150 @@
   --ring: 24 95% 53%;               /* #F97316 - Orange */
 }
 
-/* Optional: base styles can be added later using @layer base if desired */
+/* Drag and Drop Performance Improvements */
+@layer base {
+  /* Improve drag performance */
+  [data-task-id] {
+    will-change: transform;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+  }
+  
+  /* Smooth animations for kanban interactions */
+  .kanban-card-dragging {
+    pointer-events: none;
+    user-select: none;
+    z-index: 9999 !important;
+    position: relative !important;
+  }
+  
+  /* Ensure dragged elements stay on top of everything */
+  [data-task-id][style*="translateX"] {
+    z-index: 9999 !important;
+    position: relative !important;
+  }
+  
+  /* Create isolated stacking context for dragged cards */
+  [data-testid="kanban-card"][style*="transform"] {
+    z-index: 99999 !important;
+    position: relative !important;
+    isolation: isolate;
+    transform-style: preserve-3d;
+  }
+  
+  /* Additional selector for dragged elements */
+  [data-testid="kanban-card"][style*="translateX"] {
+    z-index: 99999 !important;
+    position: relative !important;
+    isolation: isolate;
+    transform-style: preserve-3d;
+  }
+  
+  /* Ensure kanban boards use flat stacking */
+  [data-testid="kanban-board"] {
+    position: relative;
+    z-index: 1;
+    isolation: auto;
+    transform-style: flat;
+  }
+  
+  /* Reset stacking context for grid */
+  .grid.auto-cols-fr {
+    z-index: auto;
+    position: relative;
+    isolation: isolate;
+  }
+  
+  /* Force dragged items to new stacking context */
+  [data-task-id][style*="translateZ(100px)"] {
+    z-index: 99999 !important;
+    position: relative !important;
+    isolation: isolate !important;
+  }
+  
+  /* Hardware acceleration for better performance */
+  .kanban-board {
+    transform: translateZ(0);
+    z-index: 1;
+    isolation: auto;
+  }
+  
+  /* Ensure main kanban container doesn't interfere */
+  .kanban-scroll {
+    z-index: 0;
+    isolation: isolate;
+  }
+  
+  /* Smooth scrolling for kanban boards */
+  .kanban-scroll {
+    scroll-behavior: smooth;
+  }
+  
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Drag and Drop Animations */
+@keyframes drop-fade-out {
+  0% {
+    opacity: 1;
+    transform: scale(1.05) rotate(2deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95) rotate(0deg);
+  }
+}
+
+.animate-drop-fade-out {
+  animation: drop-fade-out 300ms ease-out forwards;
+}
+
+/* Theme-specific color overrides - Using !important for maximum specificity */
+/* Classic Taco Theme (default - amber/lime) */
+html.dark.theme-classic-taco,
+html.theme-classic-taco,
+.dark.theme-classic-taco,
+.theme-classic-taco {
+  --primary: 217 119 6 !important;              /* amber-600 */
+  --primary-foreground: 255 255 255 !important; /* white */
+  --secondary: 101 163 13 !important;           /* lime-600 */
+  --secondary-foreground: 255 255 255 !important; /* white */
+  --accent: 234 88 12 !important;               /* orange-500 */
+  --accent-foreground: 255 255 255 !important;  /* white */
+  --ring: 217 119 6 !important;                 /* amber-600 for focus rings */
+}
+
+/* Guacamole Theme (lime/emerald) */
+html.dark.theme-guacamole,
+html.theme-guacamole,
+.dark.theme-guacamole,
+.theme-guacamole {
+  --primary: 101 163 13 !important;             /* lime-600 */
+  --primary-foreground: 255 255 255 !important; /* white */
+  --secondary: 16 185 129 !important;           /* emerald-500 */
+  --secondary-foreground: 255 255 255 !important; /* white */
+  --accent: 234 179 8 !important;               /* yellow-500 */
+  --accent-foreground: 0 0 0 !important;        /* black */
+  --ring: 101 163 13 !important;                /* lime-600 for focus rings */
+}
+
+/* Salsa Theme (rose/red) */
+html.dark.theme-salsa,
+html.theme-salsa,
+.dark.theme-salsa,
+.theme-salsa {
+  --primary: 225 29 72 !important;              /* rose-600 */
+  --primary-foreground: 255 255 255 !important; /* white */
+  --secondary: 239 68 68 !important;            /* red-500 */
+  --secondary-foreground: 255 255 255 !important; /* white */
+  --accent: 234 88 12 !important;               /* orange-500 */
+  --accent-foreground: 255 255 255 !important;  /* white */
+  --ring: 225 29 72 !important;                 /* rose-600 for focus rings */
+}

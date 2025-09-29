@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { BoardView } from '@/components/BoardView';
 import { Dashboard } from '@/components/Dashboard';
+import { settingsService } from '@/services/settingsService';
+import type { ThemeName } from '@/types/user';
 import './App.css';
 
 function App() {
@@ -15,7 +17,61 @@ function App() {
   const [selectedBoardId, setSelectedBoardId] = useState<number | null>(null);
   const [selectedBoardName, setSelectedBoardName] = useState<string | null>(null);
 
-  // Theme is handled by ThemeProvider
+  // Initialize theme on app load
+  useEffect(() => {
+    const initializeTheme = async () => {
+      let themeToApply: ThemeName = 'Classic Taco';
+      
+      try {
+        // First try to load from API (source of truth)
+        const userSettings = await settingsService.getUserSettings();
+        themeToApply = userSettings.theme as ThemeName;
+        
+        // Update cache with API data
+        settingsService.setCachedTheme(themeToApply);
+      } catch (error) {
+        // Fallback to cached theme
+        themeToApply = settingsService.getCachedTheme() as ThemeName;
+      }
+
+      const savedTheme = themeToApply;      // Remove existing theme classes from both html and body
+      document.documentElement.classList.remove('theme-classic-taco', 'theme-guacamole', 'theme-salsa');
+      document.body.classList.remove('theme-classic-taco', 'theme-guacamole', 'theme-salsa');
+      
+      // Add new theme class
+      const themeClass = `theme-${savedTheme.toLowerCase().replace(/\s+/g, '-')}`;
+      document.documentElement.classList.add(themeClass);
+      document.body.classList.add(themeClass);
+      
+      // Also set CSS variables directly as backup
+      let primaryColor = '217 119 6'; // default amber for Classic Taco
+      
+      if (savedTheme === 'Classic Taco') {
+        primaryColor = '217 119 6'; // amber-600
+      } else if (savedTheme === 'Guacamole') {
+        primaryColor = '101 163 13'; // lime-600
+      } else if (savedTheme === 'Salsa') {
+        primaryColor = '225 29 72'; // rose-600
+      }
+      
+      document.documentElement.style.setProperty('--primary', primaryColor);
+    };
+
+    initializeTheme();
+
+    // Listen for theme changes from settings modal
+    const handleThemeChange = (event: CustomEvent) => {
+      const { theme } = event.detail;
+      // The theme is already applied by the modal, we just need to update our cache
+      settingsService.setCachedTheme(theme);
+    };
+    window.addEventListener('themeChanged', handleThemeChange as EventListener);
+
+    // Cleanup listener on unmount
+    return () => {
+      window.removeEventListener('themeChanged', handleThemeChange as EventListener);
+    };
+  }, []);
 
   const handleSelectBoard = (boardId: number, boardName: string) => {
     setSelectedBoardId(boardId);

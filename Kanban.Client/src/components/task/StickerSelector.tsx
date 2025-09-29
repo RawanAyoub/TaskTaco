@@ -108,7 +108,7 @@ export function StickerSelector({
                 Choose from picker
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0" align="start">
+            <PopoverContent className="w-80 p-0 bg-background/95 backdrop-blur-md border shadow-lg" align="start">
               <div className="p-4">
                 {/* Category Tabs */}
                 <div className="flex flex-wrap gap-1 mb-3 border-b pb-2">

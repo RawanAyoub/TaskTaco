@@ -4,10 +4,10 @@ const API_BASE = '/api';
 
 class SettingsService {
   async getUserSettings(): Promise<UserSettings> {
-    const response = await fetch(`${API_BASE}/users/settings`, {
+    const response = await fetch(`${API_BASE}/user/settings`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
         'Content-Type': 'application/json',
       },
     });
@@ -20,10 +20,10 @@ class SettingsService {
   }
 
   async updateUserSettings(settings: UpdateUserSettingsRequest): Promise<UserSettings> {
-    const response = await fetch(`${API_BASE}/users/settings`, {
+    const response = await fetch(`${API_BASE}/user/settings`, {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(settings),
@@ -38,11 +38,12 @@ class SettingsService {
 
   // Local storage helpers for immediate UI updates
   getCachedTheme(): string {
-    return localStorage.getItem('tasktaco-theme') || 'Classic Taco';
+    return localStorage.getItem('color-theme') || 'Classic Taco';
   }
 
   setCachedTheme(theme: string): void {
-    localStorage.setItem('tasktaco-theme', theme);
+    localStorage.setItem('color-theme', theme);
+
   }
 
   getCachedDefaultEmoji(): string {

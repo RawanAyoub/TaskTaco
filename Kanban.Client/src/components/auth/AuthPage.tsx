@@ -22,7 +22,7 @@ export const AuthPage: React.FC = () => {
             />
           </div>
           <div>
-            <h1 className="text-4xl font-bold text-orange-500 mb-2">TaskTaco</h1>
+            <h1 className="text-4xl font-bold mb-2" style={{ color: 'hsl(var(--secondary))' }}>TaskTaco</h1>
             <p className="text-lg text-muted-foreground">
               Welcome to your productivity companion
             </p>
