@@ -79,34 +79,36 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
     const activeIdStr = String(active.id);
     const fromStatus: string | undefined = active.data.current?.parent;
     const toStatus = String(over.id);
-    if (!fromStatus) return;
+    if (!fromStatus || fromStatus === toStatus) return; // No change if same column
 
     const fromColumn = columns.find((c) => c.name === fromStatus);
     const toColumn = columns.find((c) => c.name === toStatus);
     if (!fromColumn || !toColumn) return;
 
     const taskId = Number(activeIdStr);
-    const prev = structuredClone(tasksByColumn);
 
-    // optimistic: remove from source, append to target
-    setTasksByColumn((prevMap) => {
-      const next = { ...prevMap };
-      next[fromColumn.id] = (next[fromColumn.id] ?? []).filter((t) => t.id !== taskId);
-      const target = next[toColumn.id] ? [...next[toColumn.id]] : [];
-      const movedTask = prevMap[fromColumn.id]?.find((t) => t.id === taskId);
-      if (movedTask) {
-        target.push({ ...movedTask, columnId: toColumn.id });
-      }
-      next[toColumn.id] = target.map((t, i) => ({ ...t, order: i }));
-      return next;
-    });
+    // Calculate new order before move
+    const newOrder = (tasksByColumn[toColumn.id]?.length ?? 0);
 
     try {
-      const newOrder = (tasksByColumn[toColumn.id]?.length ?? 0); // append
+      // Move on server first to prevent duplication
       await Tasks.move(taskId, { columnId: toColumn.id, order: newOrder });
+      
+      // Only update state after successful server move
+      setTasksByColumn((prevMap) => {
+        const next = { ...prevMap };
+        next[fromColumn.id] = (next[fromColumn.id] ?? []).filter((t) => t.id !== taskId);
+        const target = next[toColumn.id] ? [...next[toColumn.id]] : [];
+        const movedTask = prevMap[fromColumn.id]?.find((t) => t.id === taskId);
+        if (movedTask) {
+          target.push({ ...movedTask, columnId: toColumn.id });
+        }
+        next[toColumn.id] = target.map((t, i) => ({ ...t, order: i }));
+        return next;
+      });
     } catch (e) {
-      // rollback
-      setTasksByColumn(prev);
+      // Don't update state if server move failed
+      console.error('Failed to move task:', e);
     }
   };
 
@@ -125,32 +127,17 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
   const handleAddTask = async (columnId: number, title: string, description: string, priority: string) => {
     const status = columns.find((c) => c.id === columnId)?.name ?? '';
 
-    // optimistic insert at end
-    const prev = structuredClone(tasksByColumn);
-    const tempId = Math.floor(Math.random() * 1e9) * -1; // temporary negative id
-    const optimistic: TaskDto = {
-      id: tempId,
-      columnId,
-      title,
-      description,
-      status,
-      priority,
-      order: (tasksByColumn[columnId]?.length ?? 0),
-    };
-    setTasksByColumn((m) => ({
-      ...m,
-      [columnId]: [...(m[columnId] ?? []), optimistic].map((t, i) => ({ ...t, order: i })),
-    }));
-
     try {
+      // Create task on server first to avoid duplication
       const created = await Tasks.create({ columnId, title, description, status, priority });
+      
+      // Only update state after successful creation
       setTasksByColumn((m) => ({
         ...m,
-        [columnId]: (m[columnId] ?? []).map((t) => (t.id === tempId ? created : t)).map((t, i) => ({ ...t, order: i })),
+        [columnId]: [...(m[columnId] ?? []), created].map((t, i) => ({ ...t, order: i })),
       }));
     } catch (e: any) {
       setError(e?.message ?? 'Failed to create task');
-      setTasksByColumn(prev);
       throw e; // Re-throw for dialog error handling
     }
   };
@@ -198,12 +185,12 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
     }
   };
 
-  if (loading) return <div className="text-sm text-muted-foreground">Loading…</div>;
-  if (error) return <div className="text-sm text-destructive">{error}</div>;
+  if (loading) return <div className="text-sm text-muted-foreground bg-background p-6">Loading tasks... 🌮</div>;
+  if (error) return <div className="text-sm text-destructive bg-background p-6">{error}</div>;
 
   return (
-    <>
-      <div className="flex items-center justify-between mb-3">
+    <div className="bg-background min-h-screen p-6">
+      <div className="flex items-center justify-between mb-6">
         <div className="text-sm text-muted-foreground">Board #{boardId}</div>
         <div className="flex gap-2">
           <AIPrdExportModal boardId={boardId} boardName={`Board #${boardId}`} />
@@ -296,7 +283,7 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
         );
       })}
     </KanbanProvider>
-    </>
+    </div>
   );
 };
 

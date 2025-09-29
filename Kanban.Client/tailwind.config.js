@@ -19,6 +19,19 @@ export default {
     },
     extend: {
       colors: {
+        // TaskTaco Color Palette
+        'tasktaco': {
+          'background': '#111827',
+          'surface': '#1F2937',
+          'primary': '#F97316',
+          'secondary': '#FACC15',
+          'text-primary': '#F9FAFB',
+          'text-secondary': '#D1D5DB',
+          'success': '#10B981',
+          'error': '#EF4444',
+          'border': '#374151',
+        },
+        // Keep shadcn/ui compatibility
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

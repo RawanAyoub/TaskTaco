@@ -1,4 +1,4 @@
-/* Theme Toggle Component Styles */
+/* Theme Toggle Component Styles - TaskTaco Theme */
 .theme-toggle-container {
   display: inline-block;
 }
@@ -14,7 +14,7 @@
         top: 2px;
         transform: translateX(0px);
         animation: off .7s forwards cubic-bezier(.8, .5, .2, 1.4);
-        box-shadow: inset 3px -3px 2px rgba(53, 53, 53, 0.3);
+        box-shadow: inset 3px -3px 2px rgba(75, 85, 99, 0.3);
       }
 
       .theme-switch{
@@ -63,7 +63,7 @@
 
       .theme-switch:checked:after{
       animation: on .7s forwards cubic-bezier(.8, .5, .2, 1.4);
-      box-shadow: inset -3px -3px 2px rgba(53, 53, 53, 0.3);
+      box-shadow: inset -3px -3px 2px rgba(75, 85, 99, 0.3);
       }
 
       @keyframes on{
@@ -91,7 +91,7 @@
       top: 3px;
       transform-origin: 27px 6px;
       background-color: transparent;
-      box-shadow: 3px -1px 0px #fff;
+      box-shadow: 3px -1px 0px #FACC15;
       filter: blur(0px);
       animation: sun .7s forwards ease;
       }
@@ -99,29 +99,29 @@
       0%{
           transform: rotate(170deg);
           background-color: transparent;
-          box-shadow: 3px -1px 0px #fff;
+          box-shadow: 3px -1px 0px #FACC15;
           filter: blur(0px);
       }
       50%{
           background-color: transparent;
-          box-shadow: 3px -1px 0px #fff;
+          box-shadow: 3px -1px 0px #FACC15;
           filter: blur(0px);
       }
       90%{
-          background-color: #f5daaa;
-          box-shadow: 0px 0px 5px #f5deb4,
-          0px 0px 10px #f5deb4,
-          0px 0px 15px #f5deb4,
-          inset 0px 0px 1px #efd3a3;
+          background-color: #F97316;
+          box-shadow: 0px 0px 5px #FACC15,
+          0px 0px 10px #FACC15,
+          0px 0px 15px #FACC15,
+          inset 0px 0px 1px #F59E0B;
           filter: blur(0.5px);
       }
       100%{
           transform: rotate(0deg);
-          background-color: #f5daaa;
-          box-shadow: 0px 0px 5px #f5deb4,
-          0px 0px 10px #f5deb4,
-          0px 0px 15px #f5deb4,
-          inset 0px 0px 1px #efd3a3;
+          background-color: #F97316;
+          box-shadow: 0px 0px 5px #FACC15,
+          0px 0px 10px #FACC15,
+          0px 0px 15px #FACC15,
+          inset 0px 0px 1px #F59E0B;
           filter: blur(0.5px);
       }
       }
@@ -135,11 +135,11 @@
       left: 8px;
       top: 3px;
       filter: blur(0.5px);
-      background-color: #f5daaa;
-      box-shadow: 0px 0px 5px #f5deb4,
-      0px 0px 10px #f5deb4,
-      0px 0px 15px #f5deb4,
-      inset 0px 0px 1px #efd3a3;
+      background-color: #F97316;
+      box-shadow: 0px 0px 5px #FACC15,
+      0px 0px 10px #FACC15,
+      0px 0px 15px #FACC15,
+      inset 0px 0px 1px #F59E0B;
       transform-origin: 27px 6px;
       animation: moon .7s forwards ease;
       }
@@ -153,14 +153,14 @@
       }
       90%{
           background-color: transparent;
-          box-shadow: 3px -1px 0px #fff;
+          box-shadow: 3px -1px 0px #FACC15;
           filter: blur(0px);
 
       }
       100%{
           transform: rotate(170deg);
           background-color: transparent;
-          box-shadow: 3px -1px 0px #fff;
+          box-shadow: 3px -1px 0px #FACC15;
           filter: blur(0px);
       }
       }

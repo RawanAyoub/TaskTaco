@@ -39,8 +39,8 @@ export const KanbanBoard = ({ id, children, className }: KanbanBoardProps) => {
       data-status={id}
       data-testid="kanban-board"
       className={cn(
-        'flex h-full min-h-40 flex-col gap-2 rounded-md border bg-secondary p-2 text-xs shadow-sm outline-2 transition-all',
-        isOver ? 'outline-primary' : 'outline-transparent',
+        'flex h-full min-h-40 flex-col gap-2 rounded-lg border border-border bg-card p-4 text-xs shadow-lg outline-2 transition-all',
+        isOver ? 'outline-orange-500' : 'outline-transparent',
         className
       )}
       // Fallback styles in case Tailwind isn't applied at runtime
@@ -85,7 +85,7 @@ export const KanbanCard = ({
       data-testid="kanban-card"
       data-task-id={id}
       className={cn(
-        'rounded-md p-3 shadow-sm',
+        'rounded-lg p-3 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 bg-card border-border text-card-foreground',
         isDragging && 'cursor-grabbing',
         className
       )}
@@ -130,12 +130,12 @@ export const KanbanHeader = (props: KanbanHeaderProps) =>
   'children' in props ? (
     props.children
   ) : (
-    <div className={cn('flex shrink-0 items-center gap-2', props.className)}>
+    <div className={cn('flex shrink-0 items-center gap-2 mb-2', props.className)}>
       <div
-        className="h-2 w-2 rounded-full"
+        className="h-3 w-3 rounded-full"
         style={{ backgroundColor: props.color }}
       />
-      <p className="m-0 font-semibold text-sm">{props.name}</p>
+      <p className="m-0 font-bold text-sm text-white">{props.name}</p>
     </div>
   );
 

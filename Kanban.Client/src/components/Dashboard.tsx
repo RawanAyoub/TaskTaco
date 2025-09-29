@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Folder, Calendar, ArrowRight, Trash2 } from 'lucide-react';
+import { Plus, Calendar, ArrowRight, Trash2 } from 'lucide-react';
 import { Boards } from '@/services/boards';
 import { CreateBoardDialog } from '@/components/dialogs/CreateBoardDialog';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
@@ -50,21 +50,21 @@ export function Dashboard({ onSelectBoard }: DashboardProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading your boards...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading your boards... 🌮</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container max-w-6xl mx-auto p-6">
+    <div className="container max-w-6xl mx-auto p-6 bg-background min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">My Kanban Boards</h1>
+          <h1 className="text-3xl font-bold text-white">My Kanban Boards 🌮</h1>
           <p className="text-muted-foreground mt-1">
             Organize your projects and tasks efficiently
           </p>
@@ -75,25 +75,25 @@ export function Dashboard({ onSelectBoard }: DashboardProps) {
 
       {/* Error Display */}
       {error && (
-        <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-          <p className="text-destructive text-sm">{error}</p>
+        <div className="mb-6 p-4 bg-red-900/20 border border-red-600/30 rounded-lg">
+          <p className="text-red-400 text-sm">{error}</p>
         </div>
       )}
 
       {/* Boards Grid */}
       {boards.length === 0 ? (
         <div className="text-center py-12">
-          <Folder className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">No boards yet</h3>
-          <p className="text-muted-foreground mb-4">
-            Create your first Kanban board to get started organizing your tasks
+          <div className="text-6xl mb-4">🌮</div>
+          <h3 className="text-lg font-bold text-white mb-2">No boards yet — add some flavor!</h3>
+          <p className="text-muted-foreground mb-6">
+            Create your first Kanban board to get started organizing your tasks with TaskTaco
           </p>
           <CreateBoardDialog 
             onBoardCreated={handleBoardCreated}
             trigger={
-              <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+              <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
                 <Plus className="w-4 h-4 mr-2" />
-                Create Your First Board
+                Create Your First Board 🌮
               </Button>
             }
           />
@@ -152,7 +152,7 @@ export function Dashboard({ onSelectBoard }: DashboardProps) {
         <div className="mt-8 p-4 bg-muted/50 rounded-lg">
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>Total boards: {boards.length}</span>
-            <span>LocalFree Kanban • Privacy-First Project Management</span>
+            <span>TaskTaco • Privacy-First Project Management 🌮</span>
           </div>
         </div>
       )}
