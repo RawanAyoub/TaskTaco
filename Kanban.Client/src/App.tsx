@@ -38,7 +38,8 @@ function App() {
             <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <div className="container max-w-6xl mx-auto px-6 py-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                  {/* Left side - Title and Back button */}
+                  <div className="flex items-center gap-4">
                     {currentView === 'board' && (
                       <Button
                         variant="ghost"
@@ -56,12 +57,14 @@ function App() {
                       }
                     </h1>
                   </div>
+                  
+                  {/* Right side - Theme toggle and User settings */}
                   <div className="flex items-center gap-3">
-                    <ThemeToggle />
                     <Button variant="outline" size="sm">
                       <Settings className="w-4 h-4 mr-2" />
                       Settings
                     </Button>
+                    <ThemeToggle />
                     <UserMenu />
                   </div>
                 </div>

@@ -93,7 +93,7 @@ export function Dashboard({ onSelectBoard }: DashboardProps) {
           <CreateBoardDialog 
             onBoardCreated={handleBoardCreated}
             trigger={
-              <Button>
+              <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Your First Board
               </Button>

@@ -79,7 +79,11 @@ export function CreateColumnDialog({ onColumnCreate, trigger }: CreateColumnDial
   };
 
   const defaultTrigger = (
-    <Button variant="outline" size="sm">
+    <Button 
+      variant="outline" 
+      size="sm"
+      className="border-2 border-dashed border-muted-foreground/40 hover:border-primary hover:bg-primary/5 transition-all duration-200"
+    >
       <Plus className="w-4 h-4 mr-2" />
       Add Column
     </Button>

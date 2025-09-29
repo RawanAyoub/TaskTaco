@@ -7,7 +7,7 @@ interface KanbanBoardProps {
   boardId?: number;
 }
 
-export function KanbanBoard({}: KanbanBoardProps) {
+export function KanbanBoard({ boardId = 1 }: KanbanBoardProps) {
   // For now, we'll use the demo component with static data
 
   return (
@@ -23,7 +23,7 @@ export function KanbanBoard({}: KanbanBoardProps) {
         </div>
       </div>
 
-      <BoardView />
+      <BoardView boardId={boardId} />
     </div>
   );
 }

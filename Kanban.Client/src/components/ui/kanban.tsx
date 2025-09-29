@@ -39,7 +39,7 @@ export const KanbanBoard = ({ id, children, className }: KanbanBoardProps) => {
       data-status={id}
       data-testid="kanban-board"
       className={cn(
-        'flex h-full min-h-40 flex-col gap-2 rounded-md border bg-secondary p-2 text-xs shadow-sm outline outline-2 transition-all',
+        'flex h-full min-h-40 flex-col gap-2 rounded-md border bg-secondary p-2 text-xs shadow-sm outline-2 transition-all',
         isOver ? 'outline-primary' : 'outline-transparent',
         className
       )}

@@ -14,7 +14,7 @@ import { Columns } from '@/services/columns';
 import { Tasks } from '@/services/tasks';
 import type { ColumnDto, TaskDto } from '@/types/api';
 import { Button } from '@/components/ui/button';
-import { Trash2, Pencil, X, Check } from 'lucide-react';
+import { Trash2, Pencil, X, Check, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { AIPrdExportModal } from '@/components/AIPrdExportModal';
@@ -227,8 +227,13 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
           <CreateColumnDialog 
             onColumnCreate={handleAddColumn}
             trigger={
-              <Button variant="secondary" size="sm">
-                + Column
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="border-2 border-dashed border-primary/40 hover:border-primary hover:bg-primary/10 text-primary hover:text-primary transition-all duration-200"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Column
               </Button>
             }
           />
