@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Kanban.Domain.Enums;
 
 namespace Kanban.Server;
 
@@ -59,30 +60,31 @@ public class Program
             context.SaveChanges();
 
             // Create tasks
+            var now = DateTime.UtcNow;
             var tasks = new[]
             {
-                new Kanban.Domain.Entities.Task { Title = "AI Scene Analysis", Description = "AI Integration", Status = "To Do", Priority = "Medium", Order = 0, ColumnId = plannedColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "Real-time Video Chat", Description = "Real-time Collaboration", Status = "To Do", Priority = "High", Order = 1, ColumnId = plannedColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "AI-Assisted Video Transitions", Description = "AI Integration", Status = "To Do", Priority = "Low", Order = 2, ColumnId = plannedColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "Multi-User Permissions", Description = "Real-time Collaboration", Status = "To Do", Priority = "Medium", Order = 3, ColumnId = plannedColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "AI Scene Recommendations", Description = "AI Integration", Status = "To Do", Priority = "High", Order = 4, ColumnId = plannedColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "Global CDN Integration", Description = "Cloud Migration", Status = "To Do", Priority = "Medium", Order = 5, ColumnId = plannedColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "AI-Powered Video Summarization", Description = "AI Integration", Status = "To Do", Priority = "High", Order = 6, ColumnId = plannedColumn.Id },
+                new Kanban.Domain.Entities.Task { Title = "AI Scene Analysis", Description = "AI Integration", Status = "To Do", Priority = Priority.Medium, Order = 0, ColumnId = plannedColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "Real-time Video Chat", Description = "Real-time Collaboration", Status = "To Do", Priority = Priority.High, Order = 1, ColumnId = plannedColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "AI-Assisted Video Transitions", Description = "AI Integration", Status = "To Do", Priority = Priority.Low, Order = 2, ColumnId = plannedColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "Multi-User Permissions", Description = "Real-time Collaboration", Status = "To Do", Priority = Priority.Medium, Order = 3, ColumnId = plannedColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "AI Scene Recommendations", Description = "AI Integration", Status = "To Do", Priority = Priority.High, Order = 4, ColumnId = plannedColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "Global CDN Integration", Description = "Cloud Migration", Status = "To Do", Priority = Priority.Medium, Order = 5, ColumnId = plannedColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "AI-Powered Video Summarization", Description = "AI Integration", Status = "To Do", Priority = Priority.High, Order = 6, ColumnId = plannedColumn.Id, CreatedAt = now, UpdatedAt = now },
                 
-                new Kanban.Domain.Entities.Task { Title = "Collaborative Editing", Description = "Real-time Collaboration", Status = "In Progress", Priority = "High", Order = 0, ColumnId = inProgressColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "AI Voice-to-Text Subtitles", Description = "AI Integration", Status = "In Progress", Priority = "Medium", Order = 1, ColumnId = inProgressColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "Version Control System", Description = "Real-time Collaboration", Status = "In Progress", Priority = "High", Order = 2, ColumnId = inProgressColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "AI-Powered Audio Enhancement", Description = "AI Integration", Status = "In Progress", Priority = "Medium", Order = 3, ColumnId = inProgressColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "Collaborative Storyboarding", Description = "Real-time Collaboration", Status = "In Progress", Priority = "High", Order = 4, ColumnId = inProgressColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "AI Object Tracking", Description = "AI Integration", Status = "In Progress", Priority = "Medium", Order = 5, ColumnId = inProgressColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "Blockchain-based Asset Licensing", Description = "Cloud Migration", Status = "In Progress", Priority = "Low", Order = 6, ColumnId = inProgressColumn.Id },
+                new Kanban.Domain.Entities.Task { Title = "Collaborative Editing", Description = "Real-time Collaboration", Status = "In Progress", Priority = Priority.High, Order = 0, ColumnId = inProgressColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "AI Voice-to-Text Subtitles", Description = "AI Integration", Status = "In Progress", Priority = Priority.Medium, Order = 1, ColumnId = inProgressColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "Version Control System", Description = "Real-time Collaboration", Status = "In Progress", Priority = Priority.High, Order = 2, ColumnId = inProgressColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "AI-Powered Audio Enhancement", Description = "AI Integration", Status = "In Progress", Priority = Priority.Medium, Order = 3, ColumnId = inProgressColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "Collaborative Storyboarding", Description = "Real-time Collaboration", Status = "In Progress", Priority = Priority.High, Order = 4, ColumnId = inProgressColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "AI Object Tracking", Description = "AI Integration", Status = "In Progress", Priority = Priority.Medium, Order = 5, ColumnId = inProgressColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "Blockchain-based Asset Licensing", Description = "Cloud Migration", Status = "In Progress", Priority = Priority.Low, Order = 6, ColumnId = inProgressColumn.Id, CreatedAt = now, UpdatedAt = now },
                 
-                new Kanban.Domain.Entities.Task { Title = "AI-Powered Color Grading", Description = "AI Integration", Status = "Done", Priority = "High", Order = 0, ColumnId = doneColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "Cloud Asset Management", Description = "Cloud Migration", Status = "Done", Priority = "Medium", Order = 1, ColumnId = doneColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "AI Content-Aware Fill", Description = "AI Integration", Status = "Done", Priority = "High", Order = 2, ColumnId = doneColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "Real-time Project Analytics", Description = "Cloud Migration", Status = "Done", Priority = "Medium", Order = 3, ColumnId = doneColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "AI-Driven Video Compression", Description = "AI Integration", Status = "Done", Priority = "High", Order = 4, ColumnId = doneColumn.Id },
-                new Kanban.Domain.Entities.Task { Title = "Real-time Language Translation", Description = "Real-time Collaboration", Status = "Done", Priority = "Medium", Order = 5, ColumnId = doneColumn.Id }
+                new Kanban.Domain.Entities.Task { Title = "AI-Powered Color Grading", Description = "AI Integration", Status = "Done", Priority = Priority.High, Order = 0, ColumnId = doneColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "Cloud Asset Management", Description = "Cloud Migration", Status = "Done", Priority = Priority.Medium, Order = 1, ColumnId = doneColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "AI Content-Aware Fill", Description = "AI Integration", Status = "Done", Priority = Priority.High, Order = 2, ColumnId = doneColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "Real-time Project Analytics", Description = "Cloud Migration", Status = "Done", Priority = Priority.Medium, Order = 3, ColumnId = doneColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "AI-Driven Video Compression", Description = "AI Integration", Status = "Done", Priority = Priority.High, Order = 4, ColumnId = doneColumn.Id, CreatedAt = now, UpdatedAt = now },
+                new Kanban.Domain.Entities.Task { Title = "Real-time Language Translation", Description = "Real-time Collaboration", Status = "Done", Priority = Priority.Medium, Order = 5, ColumnId = doneColumn.Id, CreatedAt = now, UpdatedAt = now }
             };
 
             context.Tasks.AddRange(tasks);

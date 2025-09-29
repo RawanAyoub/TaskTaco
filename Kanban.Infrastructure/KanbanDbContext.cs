@@ -34,6 +34,11 @@ public class KanbanDbContext : IdentityDbContext<User>
     public DbSet<Kanban.Domain.Entities.Task> Tasks { get; set; } = null!;
 
     /// <summary>
+    /// Gets or sets the collection of user settings in the database.
+    /// </summary>
+    public DbSet<UserSettings> UserSettings { get; set; } = null!;
+
+    /// <summary>
     /// Configures entity relationships and constraints using Fluent API.
     /// </summary>
     /// <param name="modelBuilder">The model builder instance.</param>
@@ -83,10 +88,31 @@ public class KanbanDbContext : IdentityDbContext<User>
                   .WithMany(c => c.Tasks)
                   .HasForeignKey(t => t.ColumnId)
                   .OnDelete(DeleteBehavior.Cascade);
-            entity.HasOne(t => t.AssignedUser)
-                  .WithMany()
-                  .HasForeignKey(t => t.AssignedUserId)
-                  .OnDelete(DeleteBehavior.SetNull);
+            
+            // Enhanced TaskTaco fields
+            entity.Property(t => t.Priority).IsRequired();
+            entity.Property(t => t.Labels).HasDefaultValue("[]");
+            entity.Property(t => t.Checklist).HasDefaultValue("[]");
+            entity.Property(t => t.Stickers).HasDefaultValue("[]");
+            entity.Property(t => t.CreatedAt);
+            entity.Property(t => t.UpdatedAt);
+        });
+
+        // Configure UserSettings entity
+        modelBuilder.Entity<UserSettings>(entity =>
+        {
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.UserId).IsRequired();
+            entity.Property(s => s.Theme).IsRequired().HasMaxLength(50).HasDefaultValue("Classic Taco");
+            entity.Property(s => s.DefaultEmoji).IsRequired().HasMaxLength(10).HasDefaultValue("🌮");
+            entity.Property(s => s.CreatedAt).IsRequired();
+            entity.Property(s => s.UpdatedAt).IsRequired();
+            
+            // One-to-one relationship with User
+            entity.HasOne(s => s.User)
+                  .WithOne(u => u.Settings)
+                  .HasForeignKey<UserSettings>(s => s.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

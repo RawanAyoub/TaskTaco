@@ -1,4 +1,5 @@
 using Kanban.Domain.Entities;
+using Kanban.Domain.Enums;
 using Kanban.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,7 +35,7 @@ namespace Kanban.Application.Services
         /// <param name="status">The task status.</param>
         /// <param name="priority">The task priority.</param>
         /// <returns>The created task.</returns>
-        Task<TaskEntity> CreateTaskAsync(int columnId, string title, string description, string status, string priority);
+        Task<TaskEntity> CreateTaskAsync(int columnId, string title, string description, string status, Priority priority);
 
     /// <summary>
         /// <summary>
@@ -46,7 +47,7 @@ namespace Kanban.Application.Services
         /// <param name="status">The new status.</param>
         /// <param name="priority">The new priority.</param>
         /// <returns>True if the update was successful, otherwise false.</returns>
-        Task<bool> UpdateTaskAsync(int id, string title, string description, string status, string priority);
+        Task<bool> UpdateTaskAsync(int id, string title, string description, string status, Priority priority);
 
         /// <summary>
         /// Moves a task to a different column and position asynchronously.
@@ -88,10 +89,33 @@ public class TaskService : ITaskService
     /// <returns>A collection of tasks.</returns>
     public async Task<IEnumerable<TaskEntity>> GetTasksByColumnAsync(int columnId)
     {
-        return await this.context.Tasks
+        var tasks = await this.context.Tasks
             .Where(t => t.ColumnId == columnId)
             .OrderBy(t => t.Order)
             .ToListAsync();
+        
+        // Fix any tasks with null DateTime values
+        bool hasUpdates = false;
+        foreach (var task in tasks)
+        {
+            if (!task.CreatedAt.HasValue)
+            {
+                task.CreatedAt = DateTime.UtcNow;
+                hasUpdates = true;
+            }
+            if (!task.UpdatedAt.HasValue)
+            {
+                task.UpdatedAt = DateTime.UtcNow;
+                hasUpdates = true;
+            }
+        }
+        
+        if (hasUpdates)
+        {
+            await this.context.SaveChangesAsync();
+        }
+        
+        return tasks;
     }
 
     /// <summary>
@@ -115,7 +139,7 @@ public class TaskService : ITaskService
     /// <param name="status">The task status.</param>
     /// <param name="priority">The task priority.</param>
     /// <returns>The created task.</returns>
-    public async Task<TaskEntity> CreateTaskAsync(int columnId, string title, string description, string status, string priority)
+    public async Task<TaskEntity> CreateTaskAsync(int columnId, string title, string description, string status, Priority priority)
     {
         // Get the next order position for the column
         var maxOrder = await this.context.Tasks
@@ -146,7 +170,7 @@ public class TaskService : ITaskService
     /// <param name="status">The new status.</param>
     /// <param name="priority">The new priority.</param>
     /// <returns>True if the update was successful, otherwise false.</returns>
-    public async Task<bool> UpdateTaskAsync(int id, string title, string description, string status, string priority)
+    public async Task<bool> UpdateTaskAsync(int id, string title, string description, string status, Priority priority)
     {
         var task = await this.context.Tasks.FindAsync(id);
         if (task == null)

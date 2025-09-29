@@ -1,3 +1,12 @@
+import { Priority } from './enums';
+
+// Value Objects
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 // API Types matching the backend
 export interface Board {
   id: number;
@@ -16,9 +25,16 @@ export interface Task {
   columnId: number;
   title: string;
   description: string;
+  priority: Priority;
   status: string;
-  priority: string;
+  dueDate?: string; // ISO string
+  labels: string[];
+  checklist: ChecklistItem[];
+  stickers: string[]; // emoji array
+  createdAt?: string;
+  updatedAt?: string;
   order: number;
+  isOverdue?: boolean;
 }
 
 // UI State Types
@@ -51,15 +67,23 @@ export interface CreateTaskRequest {
   columnId: number;
   title: string;
   description: string;
+  priority: Priority;
   status: string;
-  priority: string;
+  dueDate?: string;
+  labels: string[];
+  checklist: ChecklistItem[];
+  stickers: string[];
 }
 
 export interface UpdateTaskRequest {
   title: string;
   description: string;
+  priority: Priority;
   status: string;
-  priority: string;
+  dueDate?: string;
+  labels: string[];
+  checklist: ChecklistItem[];
+  stickers: string[];
 }
 
 export interface MoveTaskRequest {

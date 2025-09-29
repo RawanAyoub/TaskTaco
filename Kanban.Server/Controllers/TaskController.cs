@@ -1,5 +1,6 @@
 using Kanban.Application.Services;
 using Kanban.Domain.Entities;
+using Kanban.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kanban.Server.Controllers;
@@ -59,12 +60,18 @@ public class TaskController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateTask([FromBody] CreateTaskRequest request)
     {
+        // Parse priority from string to enum
+        if (!Enum.TryParse<Priority>(request.Priority, true, out var priority))
+        {
+            priority = Priority.Medium; // Default to Medium if parsing fails
+        }
+
         var task = await this.taskService.CreateTaskAsync(
             request.ColumnId,
             request.Title,
             request.Description,
             request.Status,
-            request.Priority);
+            priority);
 
         return this.CreatedAtAction(nameof(this.GetTask), new { id = task.Id }, task);
     }
@@ -78,12 +85,18 @@ public class TaskController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateTaskRequest request)
     {
+        // Parse priority from string to enum
+        if (!Enum.TryParse<Priority>(request.Priority, true, out var priority))
+        {
+            priority = Priority.Medium; // Default to Medium if parsing fails
+        }
+
         var success = await this.taskService.UpdateTaskAsync(
             id,
             request.Title,
             request.Description,
             request.Status,
-            request.Priority);
+            priority);
 
         if (!success)
         {

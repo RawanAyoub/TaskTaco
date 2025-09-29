@@ -47,7 +47,7 @@ public class AIPrdExportController : ControllerBase
                     t.DueDate,
                     t.Priority,
                     t.Status,
-                    t.Tags
+                    t.Labels
                 }).OrderBy(t => t.Order)
             }).OrderBy(c => c.Order)
         };
