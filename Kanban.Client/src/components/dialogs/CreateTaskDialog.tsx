@@ -4,10 +4,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Loader2, Calendar, Tag, CheckSquare } from 'lucide-react';
+import { DatePicker } from '@/components/task/DatePicker';
+import { LabelManager } from '@/components/task/LabelManager';
+import { ChecklistManager } from '@/components/task/ChecklistManager';
+import { StickerSelector } from '@/components/task/StickerSelector';
+import type { ChecklistItem } from '@/components/task/ChecklistManager';
 
 interface CreateTaskDialogProps {
-  onTaskCreate: (title: string, description: string, priority: string) => Promise<void>;
+  onTaskCreate: (
+    title: string,
+    description: string,
+    priority: string,
+    dueDate?: Date,
+    labels?: string[],
+    checklist?: ChecklistItem[],
+    stickers?: string[]
+  ) => Promise<void>;
   trigger?: React.ReactNode;
   columnName?: string;
 }
@@ -17,14 +31,28 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    priority: 'Medium'
+    priority: 'Medium',
+    dueDate: undefined as Date | undefined,
+    labels: [] as string[],
+    checklist: [] as ChecklistItem[],
+    stickers: [] as string[]
   });
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('basic');
 
   const resetForm = () => {
-    setFormData({ title: '', description: '', priority: 'Medium' });
+    setFormData({
+      title: '',
+      description: '',
+      priority: 'Medium',
+      dueDate: undefined,
+      labels: [],
+      checklist: [],
+      stickers: []
+    });
     setError(null);
+    setActiveTab('basic');
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -40,6 +68,7 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
   };
 
   const validateForm = () => {
+    // Basic fields validation
     if (!formData.title.trim()) {
       setError('Task title is required');
       return false;
@@ -56,6 +85,39 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
       setError('Task description must be 500 characters or less');
       return false;
     }
+
+    // Enhanced fields validation
+    if (formData.labels.length > 10) {
+      setError('Maximum 10 labels allowed');
+      return false;
+    }
+    
+    if (formData.labels.some(label => label.length > 50)) {
+      setError('Label names must be 50 characters or less');
+      return false;
+    }
+
+    if (formData.checklist.length > 20) {
+      setError('Maximum 20 checklist items allowed');
+      return false;
+    }
+
+    if (formData.checklist.some(item => item.text.length > 200)) {
+      setError('Checklist items must be 200 characters or less');
+      return false;
+    }
+
+    if (formData.stickers.length > 10) {
+      setError('Maximum 10 stickers allowed');
+      return false;
+    }
+
+    // Due date validation
+    if (formData.dueDate && formData.dueDate < new Date(new Date().setHours(0, 0, 0, 0))) {
+      setError('Due date cannot be in the past');
+      return false;
+    }
+
     return true;
   };
 
@@ -73,7 +135,11 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
       await onTaskCreate(
         formData.title.trim(),
         formData.description.trim(),
-        formData.priority
+        formData.priority,
+        formData.dueDate,
+        formData.labels.length > 0 ? formData.labels : undefined,
+        formData.checklist.length > 0 ? formData.checklist : undefined,
+        formData.stickers.length > 0 ? formData.stickers : undefined
       );
       setIsOpen(false);
       resetForm();
@@ -109,66 +175,127 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]" onKeyDown={handleKeyDown}>
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto" onKeyDown={handleKeyDown}>
         <DialogHeader>
           <DialogTitle>
             Create New Task
             {columnName && <span className="text-muted-foreground"> in {columnName}</span>}
           </DialogTitle>
+          {/* Progress Indicator */}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Progress:</span>
+            <div className="flex gap-1">
+              <div className={`w-2 h-2 rounded-full ${formData.title.trim() ? 'bg-green-500' : 'bg-muted'}`} title="Title" />
+              <div className={`w-2 h-2 rounded-full ${formData.dueDate ? 'bg-blue-500' : 'bg-muted'}`} title="Due date" />
+              <div className={`w-2 h-2 rounded-full ${formData.labels.length > 0 ? 'bg-purple-500' : 'bg-muted'}`} title="Labels" />
+              <div className={`w-2 h-2 rounded-full ${formData.checklist.length > 0 ? 'bg-orange-500' : 'bg-muted'}`} title="Checklist" />
+              <div className={`w-2 h-2 rounded-full ${formData.stickers.length > 0 ? 'bg-pink-500' : 'bg-muted'}`} title="Stickers" />
+            </div>
+          </div>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Task Title */}
-          <div className="space-y-2">
-            <Label htmlFor="task-title">
-              Title *
-              <span className={`ml-2 text-xs ${isTitleNearLimit ? 'text-yellow-500' : 'text-muted-foreground'}`}>
-                ({titleCharCount}/100)
-              </span>
-            </Label>
-            <Input
-              id="task-title"
-              value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              placeholder="Enter task title..."
-              maxLength={100}
-              className={error?.includes('title') ? 'border-destructive' : ''}
-              autoFocus
-            />
-          </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="basic" className="flex items-center gap-1">
+                <Plus className="w-4 h-4" />
+                Basic
+              </TabsTrigger>
+              <TabsTrigger value="schedule" className="flex items-center gap-1">
+                <Calendar className="w-4 h-4" />
+                Schedule
+              </TabsTrigger>
+              <TabsTrigger value="organize" className="flex items-center gap-1">
+                <Tag className="w-4 h-4" />
+                Organize
+              </TabsTrigger>
+              <TabsTrigger value="details" className="flex items-center gap-1">
+                <CheckSquare className="w-4 h-4" />
+                Details
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Task Description */}
-          <div className="space-y-2">
-            <Label htmlFor="task-description">
-              Description
-              <span className={`ml-2 text-xs ${isDescriptionNearLimit ? 'text-yellow-500' : 'text-muted-foreground'}`}>
-                ({descriptionCharCount}/500)
-              </span>
-            </Label>
-            <Textarea
-              id="task-description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Enter task description (optional)..."
-              maxLength={500}
-              rows={3}
-              className="resize-none"
-            />
-          </div>
+            <TabsContent value="basic" className="space-y-4 mt-4">
+              {/* Task Title */}
+              <div className="space-y-2">
+                <Label htmlFor="task-title">
+                  Title *
+                  <span className={`ml-2 text-xs ${isTitleNearLimit ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                    ({titleCharCount}/100)
+                  </span>
+                </Label>
+                <Input
+                  id="task-title"
+                  value={formData.title}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  placeholder="Enter task title..."
+                  maxLength={100}
+                  className={error?.includes('title') ? 'border-destructive' : ''}
+                  autoFocus
+                />
+              </div>
 
-          {/* Priority Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="task-priority">Priority</Label>
-            <select
-              id="task-priority"
-              value={formData.priority}
-              onChange={(e) => handleInputChange('priority', e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-background/95 backdrop-blur-sm px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ring-1 ring-black/5 dark:ring-white/10"
-            >
-              <option value="Low">🟢 Low</option>
-              <option value="Medium">🟡 Medium</option>
-              <option value="High">🔴 High</option>
-            </select>
-          </div>
+              {/* Task Description */}
+              <div className="space-y-2">
+                <Label htmlFor="task-description">
+                  Description
+                  <span className={`ml-2 text-xs ${isDescriptionNearLimit ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                    ({descriptionCharCount}/500)
+                  </span>
+                </Label>
+                <Textarea
+                  id="task-description"
+                  value={formData.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  placeholder="Enter task description (optional)..."
+                  maxLength={500}
+                  rows={3}
+                  className="resize-none"
+                />
+              </div>
+
+              {/* Priority Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="task-priority">Priority</Label>
+                <select
+                  id="task-priority"
+                  value={formData.priority}
+                  onChange={(e) => handleInputChange('priority', e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-background/95 backdrop-blur-sm px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ring-1 ring-black/5 dark:ring-white/10"
+                >
+                  <option value="Low">🟢 Low</option>
+                  <option value="Medium">🟡 Medium</option>
+                  <option value="High">🔴 High</option>
+                </select>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="schedule" className="space-y-4 mt-4">
+              <DatePicker
+                value={formData.dueDate}
+                onChange={(date) => setFormData(prev => ({ ...prev, dueDate: date }))}
+                placeholder="Set due date (optional)"
+              />
+            </TabsContent>
+
+            <TabsContent value="organize" className="space-y-4 mt-4">
+              <LabelManager
+                value={formData.labels}
+                onChange={(labels) => setFormData(prev => ({ ...prev, labels }))}
+              />
+              
+              <StickerSelector
+                value={formData.stickers}
+                onChange={(stickers) => setFormData(prev => ({ ...prev, stickers }))}
+              />
+            </TabsContent>
+
+            <TabsContent value="details" className="space-y-4 mt-4">
+              <ChecklistManager
+                value={formData.checklist}
+                onChange={(checklist) => setFormData(prev => ({ ...prev, checklist }))}
+              />
+            </TabsContent>
+          </Tabs>
 
           {/* Error Message */}
           {error && (
@@ -178,7 +305,7 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
           )}
 
           {/* Form Actions */}
-          <div className="flex justify-between pt-4">
+          <div className="flex justify-between pt-4 border-t">
             <div className="text-xs text-muted-foreground">
               Tip: Press Ctrl+Enter to create
             </div>

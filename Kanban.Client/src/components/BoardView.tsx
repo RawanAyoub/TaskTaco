@@ -12,7 +12,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { FC } from 'react';
 import { Columns } from '@/services/columns';
 import { Tasks } from '@/services/tasks';
-import type { ColumnDto } from '@/types/api';
+import type { ColumnDto, CreateTaskRequest } from '@/types/api';
 import type { Task } from '@/types/kanban';
 import { Priority } from '@/types/enums';
 import { transformTaskDtoToTask } from '@/services/transformers';
@@ -140,12 +140,33 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
     }
   };
 
-  const handleAddTask = async (columnId: number, title: string, description: string, priority: string) => {
+  const handleAddTask = async (
+    columnId: number, 
+    title: string, 
+    description: string, 
+    priority: string,
+    dueDate?: Date,
+    labels?: string[],
+    checklist?: { id: string; text: string; done: boolean }[],
+    stickers?: string[]
+  ) => {
     const status = columns.find((c) => c.id === columnId)?.name ?? '';
 
     try {
       // Create task on server first to avoid duplication
-      const createdDto = await Tasks.create({ columnId, title, description, status, priority });
+      const createRequest: CreateTaskRequest = {
+        columnId,
+        title,
+        description,
+        status,
+        priority,
+        dueDate: dueDate?.toISOString(),
+        labels,
+        checklist,
+        stickers
+      };
+      
+      const createdDto = await Tasks.create(createRequest);
       const created = transformTaskDtoToTask(createdDto);
       
       // Only update state after successful creation
@@ -252,7 +273,9 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
               <KanbanHeader name={status.name} color={status.color} />
               {col && (
                 <CreateTaskDialog 
-                  onTaskCreate={(title, description, priority) => handleAddTask(col.id, title, description, priority)}
+                  onTaskCreate={(title, description, priority, dueDate, labels, checklist, stickers) => 
+                    handleAddTask(col.id, title, description, priority, dueDate, labels, checklist, stickers)
+                  }
                   columnName={col.name}
                   trigger={
                     <Button variant="ghost" size="sm">
