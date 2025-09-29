@@ -162,7 +162,7 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
               id="task-priority"
               value={formData.priority}
               onChange={(e) => handleInputChange('priority', e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="flex h-9 w-full rounded-md border border-input bg-background/95 backdrop-blur-sm px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ring-1 ring-black/5 dark:ring-white/10"
             >
               <option value="Low">🟢 Low</option>
               <option value="Medium">🟡 Medium</option>

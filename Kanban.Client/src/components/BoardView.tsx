@@ -14,11 +14,9 @@ import { Columns } from '@/services/columns';
 import { Tasks } from '@/services/tasks';
 import type { ColumnDto, TaskDto } from '@/types/api';
 import { Button } from '@/components/ui/button';
-import { Trash2, Pencil, X, Check, Plus } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Trash2, Pencil, Plus } from 'lucide-react';
 import { AIPrdExportModal } from '@/components/AIPrdExportModal';
-import { CreateTaskDialog, CreateColumnDialog } from '@/components/dialogs';
+import { CreateTaskDialog, CreateColumnDialog, EditTaskDialog, ConfirmDialog } from '@/components/dialogs';
 
 const colorFor = (name: string) => {
   const key = name.toLowerCase();
@@ -36,10 +34,7 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
   const [tasksByColumn, setTasksByColumn] = useState<Record<number, TaskDto[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [savingEdit, setSavingEdit] = useState(false);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -173,45 +168,33 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
     } catch (e: any) {
       setError(e?.message ?? 'Failed to delete task');
       setTasksByColumn(prev);
+      throw e; // Re-throw for dialog error handling
     }
   };
 
-  const startEdit = (task: TaskDto) => {
-    setEditingTaskId(task.id);
-    setEditTitle(task.title);
-    setEditDescription(task.description ?? '');
-  };
-
-  const cancelEdit = () => {
-    setEditingTaskId(null);
-    setEditTitle('');
-    setEditDescription('');
-    setSavingEdit(false);
-  };
-
-  const saveEdit = async (task: TaskDto) => {
-    if (!editTitle.trim()) return;
+  const handleUpdateTask = async (taskId: number, title: string, description: string, priority: string) => {
+    const task = Object.values(tasksByColumn).flat().find(t => t.id === taskId);
+    if (!task) return;
+    
     const colId = task.columnId;
     const prev = structuredClone(tasksByColumn);
     // optimistic change
     setTasksByColumn((m) => ({
       ...m,
-      [colId]: (m[colId] ?? []).map((t) => (t.id === task.id ? { ...t, title: editTitle.trim(), description: editDescription } : t)),
+      [colId]: (m[colId] ?? []).map((t) => (t.id === taskId ? { ...t, title, description, priority } : t)),
     }));
-    setSavingEdit(true);
+    
     try {
-      await Tasks.update(task.id, {
-        title: editTitle.trim(),
-        description: editDescription,
+      await Tasks.update(taskId, {
+        title,
+        description,
         status: task.status,
-        priority: task.priority,
+        priority,
       });
-      setEditingTaskId(null);
     } catch (e: any) {
       setError(e?.message ?? 'Failed to update task');
       setTasksByColumn(prev);
-    } finally {
-      setSavingEdit(false);
+      throw e; // Re-throw for dialog error handling
     }
   };
 
@@ -269,47 +252,43 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
                   parent={status.name}
                   index={index}
                 >
-                  {editingTaskId === task.id ? (
-                    <div className="flex flex-col gap-2">
-                      <Input
-                        value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
-                        placeholder="Task title"
-                        autoFocus
-                      />
-                      <Textarea
-                        value={editDescription}
-                        onChange={(e) => setEditDescription(e.target.value)}
-                        placeholder="Description (optional)"
-                        rows={3}
-                      />
-                      <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" onClick={cancelEdit} title="Cancel" disabled={savingEdit}>
-                          <X className="w-4 h-4" />
-                        </Button>
-                        <Button variant="secondary" size="icon" onClick={() => saveEdit(task)} title="Save" disabled={savingEdit}>
-                          <Check className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex flex-col gap-1">
-                        <p className="m-0 flex-1 font-medium text-sm">{task.title}</p>
-                        {task.description && (
-                          <p className="m-0 text-xs text-muted-foreground">{task.description}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-col gap-1 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="m-0 font-medium text-sm">{task.title}</p>
+                        {task.priority && task.priority !== '' && (
+                          <span className="text-xs" title={`Priority: ${task.priority}`}>
+                            {task.priority === 'High' ? '🔴' : task.priority === 'Medium' ? '🟡' : '🟢'}
+                          </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => startEdit(task)} title="Edit task">
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteTask(task)} title="Delete task">
+                      {task.description && (
+                        <p className="m-0 text-xs text-muted-foreground">{task.description}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <EditTaskDialog
+                        task={task}
+                        onTaskUpdate={handleUpdateTask}
+                        trigger={
+                          <Button variant="ghost" size="icon" title="Edit task">
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                        }
+                      />
+                      <ConfirmDialog
+                        title="Delete Task"
+                        description={`Are you sure you want to delete "${task.title}"? This action cannot be undone and will permanently remove the task from your board.`}
+                        confirmText="Delete Task"
+                        variant="destructive"
+                        onConfirm={() => handleDeleteTask(task)}
+                      >
+                        <Button variant="ghost" size="icon" title="Delete task">
                           <Trash2 className="w-4 h-4" />
                         </Button>
-                      </div>
+                      </ConfirmDialog>
                     </div>
-                  )}
+                  </div>
                 </KanbanCard>
               ))}
             </KanbanCards>

@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Plus, Folder, Calendar, ArrowRight, Trash2 } from 'lucide-react';
 import { Boards } from '@/services/boards';
 import { CreateBoardDialog } from '@/components/dialogs/CreateBoardDialog';
+import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import type { BoardDto } from '@/types/api';
 
 interface DashboardProps {
-  onSelectBoard: (boardId: number) => void;
+  onSelectBoard: (boardId: number, boardName: string) => void;
 }
 
 export function Dashboard({ onSelectBoard }: DashboardProps) {
@@ -37,16 +38,13 @@ export function Dashboard({ onSelectBoard }: DashboardProps) {
     setError(null);
   };
 
-  const handleDeleteBoard = async (boardId: number, boardName: string) => {
-    if (!confirm(`Are you sure you want to delete "${boardName}"? This action cannot be undone.`)) {
-      return;
-    }
-
+  const handleDeleteBoard = async (boardId: number) => {
     try {
       await Boards.delete(boardId);
       setBoards(prev => prev.filter(board => board.id !== boardId));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete board');
+      throw err; // Re-throw for dialog error handling
     }
   };
 
@@ -116,24 +114,29 @@ export function Dashboard({ onSelectBoard }: DashboardProps) {
                       Board #{board.id}
                     </CardDescription>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteBoard(board.id, board.name);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  <ConfirmDialog
+                    title="Delete Board"
+                    description={`Are you sure you want to delete "${board.name}"? This action cannot be undone and will permanently remove the board and all its tasks.`}
+                    confirmText="Delete Board"
+                    variant="destructive"
+                    onConfirm={() => handleDeleteBoard(board.id)}
                   >
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => e.stopPropagation()}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </ConfirmDialog>
                 </div>
               </CardHeader>
               <CardContent>
                 <Button
                   variant="ghost"
                   className="w-full justify-between group-hover:bg-accent"
-                  onClick={() => onSelectBoard(board.id)}
+                  onClick={() => onSelectBoard(board.id, board.name)}
                 >
                   Open Board
                   <ArrowRight className="w-4 h-4" />
