@@ -1,6 +1,6 @@
-using System.Text.Json;
-
 namespace Kanban.Domain.Entities;
+
+using System.Text.Json;
 
 /// <summary>
 /// Represents a task within a Kanban board column with enhanced TaskTaco features.
@@ -111,7 +111,7 @@ public class Task
         try
         {
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var items = JsonSerializer.Deserialize<List<ChecklistItemJson>>(Checklist, options) ?? new List<ChecklistItemJson>();
+            var items = JsonSerializer.Deserialize<List<ChecklistItemSerializable>>(Checklist, options) ?? new List<ChecklistItemSerializable>();
             return items.Select(item => new ValueObjects.ChecklistItem(
                 item.Id ?? Guid.NewGuid().ToString(),
                 item.Text ?? "",
@@ -162,25 +162,24 @@ public class Task
     /// Determines if the task is overdue.
     /// </summary>
     public bool IsOverdue => DueDate.HasValue && DueDate.Value < DateTime.UtcNow;
-}
-
-/// <summary>
-/// JSON representation of a checklist item for serialization/deserialization.
-/// </summary>
-internal class ChecklistItemJson
-{
     /// <summary>
-    /// Gets or sets the unique identifier for the checklist item.
+    /// JSON representation of a checklist item for serialization/deserialization.
     /// </summary>
-    public string? Id { get; set; }
+    private sealed record ChecklistItemSerializable
+    {
+        /// <summary>
+        /// Gets the unique identifier for the checklist item.
+        /// </summary>
+        public string? Id { get; init; }
 
-    /// <summary>
-    /// Gets or sets the text content of the checklist item.
-    /// </summary>
-    public string? Text { get; set; }
+        /// <summary>
+        /// Gets the text content of the checklist item.
+        /// </summary>
+        public string? Text { get; init; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the checklist item is completed.
-    /// </summary>
-    public bool Done { get; set; }
+        /// <summary>
+        /// Gets a value indicating whether the checklist item is completed.
+        /// </summary>
+        public bool Done { get; init; }
+    }
 }

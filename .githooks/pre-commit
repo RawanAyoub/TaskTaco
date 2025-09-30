@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Ensure we have dotnet
+if ! command -v dotnet >/dev/null 2>&1; then
+  echo "dotnet CLI not found. Skipping checks." >&2
+  exit 0
+fi
+
+# Fast check: solution file
+SLN="TaskTaco.sln"
+if [ ! -f "$SLN" ]; then
+  SLN=$(ls *.sln 2>/dev/null | head -n1 || true)
+fi
+
+if [ -z "$SLN" ]; then
+  echo "No .sln file found. Skipping checks." >&2
+  exit 0
+fi
+
+# Build (with warnings as errors enforced per project settings)
+echo "[pre-commit] Building solution $SLN..."
+dotnet build "$SLN" -nologo -v:m
+
+# Run server tests (fast)
+echo "[pre-commit] Running tests..."
+dotnet test "$SLN" -nologo -v:q --filter FullyQualifiedName~Kanban.Server.Tests --no-build
+
+# Optional: format C#
+if dotnet tool list -g | grep -qi dotnet-format; then
+  echo "[pre-commit] Formatting C#..."
+  dotnet format --verify-no-changes || {
+    echo "[pre-commit] Please run 'dotnet format' to apply code style fixes." >&2
+    exit 1
+  }
+fi
+
+echo "[pre-commit] All checks passed."

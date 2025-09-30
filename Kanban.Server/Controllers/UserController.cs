@@ -1,10 +1,11 @@
 namespace Kanban.Server.Controllers;
 
+using System.Security.Claims;
 using Kanban.Application.Services;
 using Kanban.Domain.Entities;
+using Kanban.Server.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 /// <summary>
 /// API controller for user profile and settings management.
@@ -159,104 +160,4 @@ public class UserController : ControllerBase
 
         return this.Ok();
     }
-}
-
-/// <summary>
-/// Response model for user profile data.
-/// </summary>
-public class UserProfileResponse
-{
-    /// <summary>
-    /// Gets or sets the user ID.
-    /// </summary>
-    public string Id { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the user's display name.
-    /// </summary>
-    public string Name { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the user's email address.
-    /// </summary>
-    public string Email { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the user's profile picture URL.
-    /// </summary>
-    public string? ProfilePicture { get; set; }
-}
-
-/// <summary>
-/// Request model for updating user profile.
-/// </summary>
-public class UpdateUserProfileRequest
-{
-    /// <summary>
-    /// Gets or sets the new display name.
-    /// </summary>
-    public string Name { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the new email address.
-    /// </summary>
-    public string Email { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Response model for user settings data.
-/// </summary>
-public class UserSettingsResponse
-{
-    /// <summary>
-    /// Gets or sets the current theme.
-    /// </summary>
-    public string Theme { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the default emoji.
-    /// </summary>
-    public string DefaultEmoji { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the available theme options.
-    /// </summary>
-    public string[] AvailableThemes { get; set; } = Array.Empty<string>();
-}
-
-/// <summary>
-/// Request model for updating user settings.
-/// </summary>
-public class UpdateUserSettingsRequest
-{
-    /// <summary>
-    /// Gets or sets the new theme.
-    /// </summary>
-    public string Theme { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the new default emoji.
-    /// </summary>
-    public string DefaultEmoji { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Request model for changing user password.
-/// </summary>
-public class ChangePasswordRequest
-{
-    /// <summary>
-    /// Gets or sets the current password.
-    /// </summary>
-    public string CurrentPassword { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the new password.
-    /// </summary>
-    public string NewPassword { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the confirmation of the new password.
-    /// </summary>
-    public string ConfirmNewPassword { get; set; } = string.Empty;
 }

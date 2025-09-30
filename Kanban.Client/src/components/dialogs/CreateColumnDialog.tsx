@@ -64,7 +64,6 @@ export function CreateColumnDialog({ onColumnCreate, trigger }: CreateColumnDial
       setIsOpen(false);
       resetForm();
     } catch (error) {
-      console.error('Failed to create column:', error);
       setError(error instanceof Error ? error.message : 'Failed to create column');
     } finally {
       setIsCreating(false);

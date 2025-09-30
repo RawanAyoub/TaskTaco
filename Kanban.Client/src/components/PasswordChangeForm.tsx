@@ -55,7 +55,6 @@ export function PasswordChangeForm({ onSuccess, onCancel }: PasswordChangeFormPr
       onSuccess?.();
     } catch (err) {
       setError('Failed to change password. Please check your current password.');
-      console.error('Password change error:', err);
     } finally {
       setLoading(false);
     }

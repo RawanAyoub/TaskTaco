@@ -1,8 +1,9 @@
-namespace Kanban.Server.Controllers;
-
-using Kanban.Server.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+namespace Kanban.Server.Controllers
+{
+    using Kanban.Server.Services;
+    using Microsoft.AspNetCore.Authorization;
+    using Kanban.Server.Models;
+    using Microsoft.AspNetCore.Mvc;
 
 /// <summary>
 /// Controller for managing user profile operations.
@@ -50,14 +51,14 @@ public class ProfileController : ControllerBase
             return this.Ok(new UploadProfilePictureResponse
             {
                 ProfilePicturePath = profilePicturePath,
-                Message = "Profile picture uploaded successfully"
+                Message = "Profile picture uploaded successfully",
             });
         }
         catch (ArgumentException ex)
         {
             return this.BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return this.StatusCode(500, new { message = "An error occurred while uploading the profile picture." });
         }
@@ -93,10 +94,10 @@ public class ProfileController : ControllerBase
 
             return this.Ok(new DeleteProfilePictureResponse
             {
-                Message = "Profile picture deleted successfully"
+                Message = "Profile picture deleted successfully",
             });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return this.StatusCode(500, new { message = "An error occurred while deleting the profile picture." });
         }
@@ -125,50 +126,14 @@ public class ProfileController : ControllerBase
 
             return this.Ok(new GetProfilePicturePathResponse
             {
-                ProfilePicturePath = profilePicturePath
+                ProfilePicturePath = profilePicturePath,
             });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return this.StatusCode(500, new { message = "An error occurred while retrieving the profile picture path." });
         }
     }
 }
 
-/// <summary>
-/// Response model for profile picture upload.
-/// </summary>
-public class UploadProfilePictureResponse
-{
-    /// <summary>
-    /// Gets or sets the profile picture path.
-    /// </summary>
-    public string ProfilePicturePath { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the response message.
-    /// </summary>
-    public string Message { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Response model for profile picture deletion.
-/// </summary>
-public class DeleteProfilePictureResponse
-{
-    /// <summary>
-    /// Gets or sets the response message.
-    /// </summary>
-    public string Message { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Response model for getting profile picture path.
-/// </summary>
-public class GetProfilePicturePathResponse
-{
-    /// <summary>
-    /// Gets or sets the profile picture path.
-    /// </summary>
-    public string? ProfilePicturePath { get; set; }
 }

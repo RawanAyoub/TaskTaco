@@ -1,13 +1,144 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using Kanban.Domain.Enums;
-using System.Data;
-
-namespace Kanban.Server;
-
-public class Program
+namespace Kanban.Server
 {
-    private static async Task EnsureSqliteSchemaAsync(Kanban.Infrastructure.KanbanDbContext context)
+    using Kanban.Domain.Enums;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.EntityFrameworkCore;
+
+    public class Program
+    {
+        public static async Task Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+
+            // Note: configure logging via appsettings. No direct logger created here.
+
+            // Add services to the container.
+            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+                });
+            builder.Services.AddScoped<Kanban.Application.Services.IBoardService, Kanban.Application.Services.BoardService>();
+            builder.Services.AddScoped<Kanban.Application.Services.ITaskService, Kanban.Application.Services.TaskService>();
+            builder.Services.AddScoped<Kanban.Application.Services.IColumnService, Kanban.Application.Services.ColumnService>();
+            builder.Services.AddScoped<Kanban.Application.Services.IUserService, Kanban.Application.Services.UserService>();
+            builder.Services.AddScoped<Kanban.Application.Services.IUserSettingsService, Kanban.Application.Services.UserSettingsService>();
+            builder.Services.AddScoped<Kanban.Server.Services.IProfileService, Kanban.Server.Services.ProfileService>();
+            builder.Services.AddOpenApi();
+
+            // Add Identity services
+            builder.Services.AddIdentity<Kanban.Domain.Entities.User, Microsoft.AspNetCore.Identity.IdentityRole>()
+                .AddEntityFrameworkStores<Kanban.Infrastructure.KanbanDbContext>()
+                .AddDefaultTokenProviders();
+
+            // Configure Identity options
+            builder.Services.Configure<Microsoft.AspNetCore.Identity.IdentityOptions>(options =>
+            {
+                // Password settings
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequiredLength = 6;
+                options.Password.RequiredUniqueChars = 1;
+
+                // Lockout settings
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.AllowedForNewUsers = true;
+
+                // User settings
+                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+                options.User.RequireUniqueEmail = true;
+            });
+
+            // Add JWT authentication
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "TaskTaco",
+                    ValidAudience = builder.Configuration["Jwt:Audience"] ?? "TaskTaco",
+                    IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                        System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "your-super-secure-key-that-is-at-least-256-bits")),
+                };
+            });
+
+            // Add CORS policy
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                });
+            });
+
+            // Add database context
+            if (builder.Environment.EnvironmentName == "Testing")
+            {
+                builder.Services.AddDbContext<Kanban.Infrastructure.KanbanDbContext>(options =>
+                    options.UseInMemoryDatabase("TestDatabase"));
+            }
+            else
+            {
+                builder.Services.AddDbContext<Kanban.Infrastructure.KanbanDbContext>(options =>
+                    options.UseSqlite("Data Source=Kanban.db"));
+            }
+
+            var app = builder.Build();
+
+            // Seed only in Development or Testing environments
+            if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Testing")
+            {
+                using (var scope = app.Services.CreateScope())
+                {
+                    var context = scope.ServiceProvider.GetRequiredService<Kanban.Infrastructure.KanbanDbContext>();
+                    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Kanban.Domain.Entities.User>>();
+                    await SeedDatabase(context, userManager);
+                }
+            }
+
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.MapOpenApi();
+            }
+
+            // HTTPS redirection can be enabled when hosting behind TLS
+            // app.UseHttpsRedirection();
+
+            // Use authentication and authorization
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            // Use CORS
+            app.UseCors("AllowFrontend");
+
+            // Use static files for uploaded profile pictures
+            app.UseStaticFiles();
+
+            app.MapControllers();
+
+            app.Run();
+        }
+
+        /// <summary>
+        /// Ensures SQLite schema compatibility if the database was created without migrations.
+        /// </summary>
+        /// <param name="context">The EF Core database context.</param>
+        private static async Task EnsureSqliteSchemaAsync(Kanban.Infrastructure.KanbanDbContext context)
     {
         try
         {
@@ -34,16 +165,18 @@ public class Program
                 await using var alter = connection.CreateCommand();
                 alter.CommandText = "ALTER TABLE Boards ADD COLUMN Description TEXT;";
                 await alter.ExecuteNonQueryAsync();
-                Console.WriteLine("[Startup] Added missing Boards.Description column for SQLite.");
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[Startup] SQLite schema check failed: {ex.Message}");
+            // Swallow to avoid crashing startup; we'll rely on migrations otherwise.
         }
     }
 
-    private static async Task SeedDatabase(Kanban.Infrastructure.KanbanDbContext context, UserManager<Kanban.Domain.Entities.User> userManager)
+        /// <summary>
+        /// Applies migrations or ensures creation, then seeds demo data in dev/testing.
+        /// </summary>
+        private static async Task SeedDatabase(Kanban.Infrastructure.KanbanDbContext context, UserManager<Kanban.Domain.Entities.User> userManager)
     {
         // Apply migrations only for relational providers; otherwise ensure created (e.g., InMemory in tests)
         if (context.Database.IsRelational())
@@ -52,11 +185,10 @@ public class Program
             {
                 await context.Database.MigrateAsync();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // If the DB was previously created without migrations, migrating can fail with "table already exists".
                 // In that case, fall back to EnsureCreated so the app can start. Devs can optionally reset the DB to align with migrations.
-                Console.WriteLine($"[Startup] Migration failed: {ex.Message}. Falling back to EnsureCreated().");
                 await context.Database.EnsureCreatedAsync();
             }
         }
@@ -114,11 +246,11 @@ public class Program
             {
                 Name = "Done",
                 Order = 2,
-                BoardId = board.Id
+                BoardId = board.Id,
             };
 
             context.Columns.AddRange(plannedColumn, inProgressColumn, doneColumn);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             // Create tasks
             var now = DateTime.UtcNow;
@@ -131,7 +263,7 @@ public class Program
                 new Kanban.Domain.Entities.Task { Title = "AI Scene Recommendations", Description = "AI Integration", Status = "To Do", Priority = Priority.High, Order = 4, ColumnId = plannedColumn.Id, CreatedAt = now, UpdatedAt = now },
                 new Kanban.Domain.Entities.Task { Title = "Global CDN Integration", Description = "Cloud Migration", Status = "To Do", Priority = Priority.Medium, Order = 5, ColumnId = plannedColumn.Id, CreatedAt = now, UpdatedAt = now },
                 new Kanban.Domain.Entities.Task { Title = "AI-Powered Video Summarization", Description = "AI Integration", Status = "To Do", Priority = Priority.High, Order = 6, ColumnId = plannedColumn.Id, CreatedAt = now, UpdatedAt = now },
-                
+
                 new Kanban.Domain.Entities.Task { Title = "Collaborative Editing", Description = "Real-time Collaboration", Status = "In Progress", Priority = Priority.High, Order = 0, ColumnId = inProgressColumn.Id, CreatedAt = now, UpdatedAt = now },
                 new Kanban.Domain.Entities.Task { Title = "AI Voice-to-Text Subtitles", Description = "AI Integration", Status = "In Progress", Priority = Priority.Medium, Order = 1, ColumnId = inProgressColumn.Id, CreatedAt = now, UpdatedAt = now },
                 new Kanban.Domain.Entities.Task { Title = "Version Control System", Description = "Real-time Collaboration", Status = "In Progress", Priority = Priority.High, Order = 2, ColumnId = inProgressColumn.Id, CreatedAt = now, UpdatedAt = now },
@@ -139,166 +271,18 @@ public class Program
                 new Kanban.Domain.Entities.Task { Title = "Collaborative Storyboarding", Description = "Real-time Collaboration", Status = "In Progress", Priority = Priority.High, Order = 4, ColumnId = inProgressColumn.Id, CreatedAt = now, UpdatedAt = now },
                 new Kanban.Domain.Entities.Task { Title = "AI Object Tracking", Description = "AI Integration", Status = "In Progress", Priority = Priority.Medium, Order = 5, ColumnId = inProgressColumn.Id, CreatedAt = now, UpdatedAt = now },
                 new Kanban.Domain.Entities.Task { Title = "Blockchain-based Asset Licensing", Description = "Cloud Migration", Status = "In Progress", Priority = Priority.Low, Order = 6, ColumnId = inProgressColumn.Id, CreatedAt = now, UpdatedAt = now },
-                
+
                 new Kanban.Domain.Entities.Task { Title = "AI-Powered Color Grading", Description = "AI Integration", Status = "Done", Priority = Priority.High, Order = 0, ColumnId = doneColumn.Id, CreatedAt = now, UpdatedAt = now },
                 new Kanban.Domain.Entities.Task { Title = "Cloud Asset Management", Description = "Cloud Migration", Status = "Done", Priority = Priority.Medium, Order = 1, ColumnId = doneColumn.Id, CreatedAt = now, UpdatedAt = now },
                 new Kanban.Domain.Entities.Task { Title = "AI Content-Aware Fill", Description = "AI Integration", Status = "Done", Priority = Priority.High, Order = 2, ColumnId = doneColumn.Id, CreatedAt = now, UpdatedAt = now },
                 new Kanban.Domain.Entities.Task { Title = "Real-time Project Analytics", Description = "Cloud Migration", Status = "Done", Priority = Priority.Medium, Order = 3, ColumnId = doneColumn.Id, CreatedAt = now, UpdatedAt = now },
                 new Kanban.Domain.Entities.Task { Title = "AI-Driven Video Compression", Description = "AI Integration", Status = "Done", Priority = Priority.High, Order = 4, ColumnId = doneColumn.Id, CreatedAt = now, UpdatedAt = now },
-                new Kanban.Domain.Entities.Task { Title = "Real-time Language Translation", Description = "Real-time Collaboration", Status = "Done", Priority = Priority.Medium, Order = 5, ColumnId = doneColumn.Id, CreatedAt = now, UpdatedAt = now }
+                new Kanban.Domain.Entities.Task { Title = "Real-time Language Translation", Description = "Real-time Collaboration", Status = "Done", Priority = Priority.Medium, Order = 5, ColumnId = doneColumn.Id, CreatedAt = now, UpdatedAt = now },
             };
 
-            context.Tasks.AddRange(tasks);
-            context.SaveChanges();
+            await context.Tasks.AddRangeAsync(tasks);
+            await context.SaveChangesAsync();
         }
     }
-
-    public static async Task Main(string[] args)
-    {
-        var builder = WebApplication.CreateBuilder(args);
-
-        // Add services to the container.
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        builder.Services.AddControllers()
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
-            });
-        builder.Services.AddScoped<Kanban.Application.Services.IBoardService, Kanban.Application.Services.BoardService>();
-        builder.Services.AddScoped<Kanban.Application.Services.ITaskService, Kanban.Application.Services.TaskService>();
-        builder.Services.AddScoped<Kanban.Application.Services.IColumnService, Kanban.Application.Services.ColumnService>();
-        builder.Services.AddScoped<Kanban.Application.Services.IUserService, Kanban.Application.Services.UserService>();
-        builder.Services.AddScoped<Kanban.Application.Services.IUserSettingsService, Kanban.Application.Services.UserSettingsService>();
-        builder.Services.AddScoped<Kanban.Server.Services.IProfileService, Kanban.Server.Services.ProfileService>();
-        builder.Services.AddOpenApi();
-
-        // Add Identity services
-        builder.Services.AddIdentity<Kanban.Domain.Entities.User, Microsoft.AspNetCore.Identity.IdentityRole>()
-            .AddEntityFrameworkStores<Kanban.Infrastructure.KanbanDbContext>()
-            .AddDefaultTokenProviders();
-
-        // Configure Identity options
-        builder.Services.Configure<Microsoft.AspNetCore.Identity.IdentityOptions>(options =>
-        {
-            // Password settings
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequiredLength = 6;
-            options.Password.RequiredUniqueChars = 1;
-
-            // Lockout settings
-            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-            options.Lockout.MaxFailedAccessAttempts = 5;
-            options.Lockout.AllowedForNewUsers = true;
-
-            // User settings
-            options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-            options.User.RequireUniqueEmail = true;
-        });
-
-        // Add JWT authentication
-        builder.Services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "TaskTaco",
-                ValidAudience = builder.Configuration["Jwt:Audience"] ?? "TaskTaco",
-                IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-                    System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "your-super-secure-key-that-is-at-least-256-bits"))
-            };
-        });
-
-        // Add CORS policy
-        builder.Services.AddCors(options =>
-        {
-            options.AddPolicy("AllowFrontend", policy =>
-            {
-                policy.AllowAnyOrigin()
-                      .AllowAnyMethod()
-                      .AllowAnyHeader();
-            });
-        });
-
-        // Add database context
-        if (builder.Environment.EnvironmentName == "Testing")
-        {
-            builder.Services.AddDbContext<Kanban.Infrastructure.KanbanDbContext>(options =>
-                options.UseInMemoryDatabase("TestDatabase"));
-        }
-        else
-        {
-            builder.Services.AddDbContext<Kanban.Infrastructure.KanbanDbContext>(options =>
-                options.UseSqlite("Data Source=Kanban.db"));
-        }
-
-        var app = builder.Build();
-
-        // Seed only in Development or Testing environments
-        if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Testing")
-        {
-            using (var scope = app.Services.CreateScope())
-            {
-                var context = scope.ServiceProvider.GetRequiredService<Kanban.Infrastructure.KanbanDbContext>();
-                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Kanban.Domain.Entities.User>>();
-                await SeedDatabase(context, userManager);
-            }
-        }
-
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.MapOpenApi();
-        }
-
-        // app.UseHttpsRedirection();
-
-        // Use authentication and authorization
-        app.UseAuthentication();
-        app.UseAuthorization();
-
-        // Use CORS
-        app.UseCors("AllowFrontend");
-
-        // Use static files for uploaded profile pictures
-        app.UseStaticFiles();
-
-        app.MapControllers();
-
-        var summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
-        app.MapGet("/weatherforecast", () =>
-        {
-            var forecast =  Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-                .ToArray();
-            return forecast;
-        })
-        .WithName("GetWeatherForecast");
-
-        app.Run();
     }
-}
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }

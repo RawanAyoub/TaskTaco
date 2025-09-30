@@ -76,7 +76,7 @@ public class KanbanDbContext : IdentityDbContext<User>
                   .WithMany(b => b.Columns)
                   .HasForeignKey(c => c.BoardId)
                   .OnDelete(DeleteBehavior.Cascade);
-            
+
             // Ensure unique column names within each board
             entity.HasIndex(c => new { c.BoardId, c.Name }).IsUnique();
         });
@@ -92,7 +92,7 @@ public class KanbanDbContext : IdentityDbContext<User>
                   .WithMany(c => c.Tasks)
                   .HasForeignKey(t => t.ColumnId)
                   .OnDelete(DeleteBehavior.Cascade);
-            
+
             // Enhanced TaskTaco fields
             entity.Property(t => t.Priority).IsRequired();
             entity.Property(t => t.Labels).HasDefaultValue("[]");
@@ -111,7 +111,7 @@ public class KanbanDbContext : IdentityDbContext<User>
             entity.Property(s => s.DefaultEmoji).IsRequired().HasMaxLength(10).HasDefaultValue("🌮");
             entity.Property(s => s.CreatedAt).IsRequired();
             entity.Property(s => s.UpdatedAt).IsRequired();
-            
+
             // One-to-one relationship with User
             entity.HasOne(s => s.User)
                   .WithOne(u => u.Settings)

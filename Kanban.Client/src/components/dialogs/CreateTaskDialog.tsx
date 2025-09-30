@@ -144,7 +144,6 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
       setIsOpen(false);
       resetForm();
     } catch (error) {
-      console.error('Failed to create task:', error);
       setError(error instanceof Error ? error.message : 'Failed to create task');
     } finally {
       setIsCreating(false);

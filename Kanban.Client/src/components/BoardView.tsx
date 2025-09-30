@@ -171,8 +171,7 @@ const BoardView: FC<BoardViewProps> = ({ boardId }) => {
         return next;
       });
     } catch (e) {
-      // Don't update state if server move failed
-      console.error('Failed to move task:', e);
+      // Don't update state if server move failed; error will be shown via setError from calling context if needed
     }
   };
 

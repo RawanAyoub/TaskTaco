@@ -1,32 +1,42 @@
+namespace Kanban.Server.Controllers;
+
+using System.Text.Json;
+using Kanban.Infrastructure;
+using Kanban.Server.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Kanban.Infrastructure;
-using System.Text.Json;
-
-namespace Kanban.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 public class AIPrdExportController : ControllerBase
 {
-    private readonly KanbanDbContext _context;
+    private readonly KanbanDbContext context;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AIPrdExportController"/> class.
+    /// </summary>
+    /// <param name="context">The database context.</param>
     public AIPrdExportController(KanbanDbContext context)
     {
-        _context = context;
+        this.context = context;
     }
 
+    /// <summary>
+    /// Exports the specified board as JSON and generates an AI PRD prompt.
+    /// </summary>
+    /// <param name="boardId">The board identifier.</param>
+    /// <returns>The export payload containing JSON and prompt.</returns>
     [HttpGet("{boardId}/export")]
     public async Task<IActionResult> ExportBoard(int boardId)
     {
-        var board = await _context.Boards
+        var board = await this.context.Boards
             .Include(b => b.Columns)
                 .ThenInclude(c => c.Tasks)
             .FirstOrDefaultAsync(b => b.Id == boardId);
 
         if (board == null)
         {
-            return NotFound();
+            return this.NotFound();
         }
 
         var boardData = new
@@ -53,16 +63,23 @@ public class AIPrdExportController : ControllerBase
             }).OrderBy(c => c.Order)
         };
 
-        var jsonData = JsonSerializer.Serialize(boardData, new JsonSerializerOptions 
-        { 
-            WriteIndented = true 
+        var jsonData = JsonSerializer.Serialize(boardData, new JsonSerializerOptions
+        {
+            WriteIndented = true,
         });
 
-        var prompt = GenerateAIPrdPrompt(board.Name, board.Description ?? string.Empty, jsonData);
+        var prompt = this.GenerateAIPrdPrompt(board.Name, board.Description ?? string.Empty, jsonData);
 
-        return Ok(new { json = jsonData, prompt });
+        return this.Ok(new { json = jsonData, prompt });
     }
 
+    /// <summary>
+    /// Builds the AI prompt to generate a PRD document based on board data.
+    /// </summary>
+    /// <param name="boardName">The board name.</param>
+    /// <param name="boardDescription">The board description.</param>
+    /// <param name="jsonData">Formatted JSON representing the board.</param>
+    /// <returns>A detailed prompt for AI PRD generation.</returns>
     private string GenerateAIPrdPrompt(string boardName, string boardDescription, string jsonData)
     {
         return $@"# AI PRD Generation Request

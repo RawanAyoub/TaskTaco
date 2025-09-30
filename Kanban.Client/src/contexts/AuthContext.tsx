@@ -144,12 +144,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const refreshUser = async () => {
     try {
-      console.log('AuthContext - refreshUser called');
       const user = await authService.getCurrentUser();
-      console.log('AuthContext - refreshUser received user:', user);
       dispatch({ type: 'AUTH_SUCCESS', payload: user });
     } catch (error) {
-      console.error('AuthContext - refreshUser failed:', error);
       // If refresh fails, logout the user
       authService.logout();
       dispatch({ type: 'AUTH_LOGOUT' });

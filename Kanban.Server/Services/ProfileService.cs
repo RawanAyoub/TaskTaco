@@ -1,66 +1,38 @@
-namespace Kanban.Server.Services;
-
-using Kanban.Domain.Entities;
-using Kanban.Infrastructure;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using System.IO;
-
-/// <summary>
-/// Interface for profile-related operations including image upload and management.
-/// </summary>
-public interface IProfileService
+namespace Kanban.Server.Services
 {
-    /// <summary>
-    /// Uploads a profile picture for a user.
-    /// </summary>
-    /// <param name="userId">The user ID.</param>
-    /// <param name="file">The uploaded file.</param>
-    /// <returns>The relative path to the uploaded file.</returns>
-    Task<string> UploadProfilePictureAsync(string userId, IFormFile file);
+    using System.IO;
+    using Kanban.Domain.Entities;
+    using Kanban.Infrastructure;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Identity;
 
     /// <summary>
-    /// Deletes a user's profile picture.
+    /// Service for managing user profile pictures and related operations.
     /// </summary>
-    /// <param name="userId">The user ID.</param>
-    /// <returns>True if the deletion was successful, otherwise false.</returns>
-    Task<bool> DeleteProfilePictureAsync(string userId);
-
-    /// <summary>
-    /// Gets the profile picture path for a user.
-    /// </summary>
-    /// <param name="userId">The user ID.</param>
-    /// <returns>The profile picture path if it exists, otherwise null.</returns>
-    Task<string?> GetProfilePicturePathAsync(string userId);
-}
-
-/// <summary>
-/// Service for managing user profile pictures and related operations.
-/// </summary>
-public class ProfileService : IProfileService
-{
-    private readonly KanbanDbContext context;
-    private readonly UserManager<User> userManager;
-    private readonly IWebHostEnvironment environment;
-    private readonly string uploadsPath = "uploads/profiles";
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ProfileService"/> class.
-    /// </summary>
-    /// <param name="context">The database context.</param>
-    /// <param name="userManager">The user manager.</param>
-    /// <param name="environment">The web host environment.</param>
-    public ProfileService(KanbanDbContext context, UserManager<User> userManager, IWebHostEnvironment environment)
+    public class ProfileService : IProfileService
     {
-        this.context = context;
-        this.userManager = userManager;
-        this.environment = environment;
-    }
+        private readonly KanbanDbContext context;
+        private readonly UserManager<User> userManager;
+        private readonly IWebHostEnvironment environment;
+        private readonly string uploadsPath = "uploads/profiles";
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProfileService"/> class.
+        /// </summary>
+        /// <param name="context">The database context.</param>
+        /// <param name="userManager">The user manager.</param>
+        /// <param name="environment">The web host environment.</param>
+        public ProfileService(KanbanDbContext context, UserManager<User> userManager, IWebHostEnvironment environment)
+        {
+            this.context = context;
+            this.userManager = userManager;
+            this.environment = environment;
+        }
 
     /// <inheritdoc/>
-    public async Task<string> UploadProfilePictureAsync(string userId, IFormFile file)
-    {
+        public async Task<string> UploadProfilePictureAsync(string userId, IFormFile file)
+        {
         if (file == null || file.Length == 0)
         {
             throw new ArgumentException("File is required", nameof(file));
@@ -99,7 +71,7 @@ public class ProfileService : IProfileService
         // Delete existing profile picture if it exists
         if (!string.IsNullOrEmpty(user.ProfilePicture))
         {
-            await this.DeleteExistingProfilePictureAsync(user.ProfilePicture);
+            this.DeleteExistingProfilePictureAsync(user.ProfilePicture);
         }
 
         // Save the new file
@@ -111,12 +83,12 @@ public class ProfileService : IProfileService
         user.ProfilePicture = relativePath;
         await this.userManager.UpdateAsync(user);
 
-        return relativePath;
-    }
+            return relativePath;
+        }
 
     /// <inheritdoc/>
-    public async Task<bool> DeleteProfilePictureAsync(string userId)
-    {
+        public async Task<bool> DeleteProfilePictureAsync(string userId)
+        {
         var user = await this.userManager.FindByIdAsync(userId);
         if (user == null || string.IsNullOrEmpty(user.ProfilePicture))
         {
@@ -124,38 +96,39 @@ public class ProfileService : IProfileService
         }
 
         // Delete the file
-        var deleted = await this.DeleteExistingProfilePictureAsync(user.ProfilePicture);
+    var deleted = this.DeleteExistingProfilePictureAsync(user.ProfilePicture);
 
         // Update user profile
         user.ProfilePicture = null;
         await this.userManager.UpdateAsync(user);
 
-        return deleted;
-    }
+            return deleted;
+        }
 
-    /// <inheritdoc/>
-    public async Task<string?> GetProfilePicturePathAsync(string userId)
-    {
-        var user = await this.userManager.FindByIdAsync(userId);
-        return user?.ProfilePicture;
-    }
-
-    private async Task<bool> DeleteExistingProfilePictureAsync(string profilePicturePath)
-    {
-        try
+        /// <inheritdoc/>
+        public async Task<string?> GetProfilePicturePathAsync(string userId)
         {
-            var fullPath = Path.Combine(this.environment.WebRootPath ?? this.environment.ContentRootPath, profilePicturePath);
-            if (File.Exists(fullPath))
+            var user = await this.userManager.FindByIdAsync(userId);
+            return user?.ProfilePicture;
+        }
+
+        private bool DeleteExistingProfilePictureAsync(string profilePicturePath)
+        {
+            try
             {
-                File.Delete(fullPath);
-                return true;
+                var fullPath = Path.Combine(this.environment.WebRootPath ?? this.environment.ContentRootPath, profilePicturePath);
+                if (File.Exists(fullPath))
+                {
+                    File.Delete(fullPath);
+                    return true;
+                }
             }
-        }
-        catch (Exception)
-        {
-            // Log error but don't throw - file deletion failure shouldn't break the operation
-        }
+            catch (Exception)
+            {
+                // Log error but don't throw - file deletion failure shouldn't break the operation
+            }
 
-        return false;
+            return false;
+        }
     }
 }

@@ -147,10 +147,8 @@ export function UserSettingsDialog({ trigger }: UserSettingsDialogProps) {
     }
     
     document.documentElement.style.setProperty('--primary', primaryColor);
-    console.log('Theme:', theme, 'Primary color set to:', primaryColor);
     
     // Dispatch custom event to notify App component
-    console.log('Dispatching themeChanged event for:', theme);
     window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme } }));
   };
 

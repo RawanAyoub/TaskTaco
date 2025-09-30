@@ -28,7 +28,7 @@ export const UserMenu: React.FC = () => {
     .slice(0, 2)
     .join('');
     
-  console.log('UserMenu - user.profilePicture:', user.profilePicture);
+  // Profile picture is optional; no console logging in production
 
   return (
     <>

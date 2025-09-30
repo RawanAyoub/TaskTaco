@@ -21,6 +21,7 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const originalThemeRef = useRef<ThemeName | null>(null);
+  const [initialSnapshot, setInitialSnapshot] = useState<{ theme: ThemeName; emoji: string } | null>(null);
 
   // Load current settings when modal opens
   useEffect(() => {
@@ -31,9 +32,7 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
 
   // Apply theme instantly when selection changes (for preview)
   useEffect(() => {
-    console.log('SettingsModal useEffect triggered - isOpen:', isOpen, 'selectedTheme:', selectedTheme);
     if (isOpen) {
-      console.log('Applying theme from useEffect:', selectedTheme);
       applyTheme(selectedTheme);
       // Temporarily update cache for immediate effect (will be reverted if cancelled)
       settingsService.setCachedTheme(selectedTheme);
@@ -54,6 +53,7 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
         setSelectedEmoji(userSettings.defaultEmoji);
         // Store original theme for potential cancellation
         originalThemeRef.current = currentTheme;
+        setInitialSnapshot({ theme: currentTheme, emoji: userSettings.defaultEmoji });
       } catch (apiError) {
         // Fallback to cached settings
         const cachedTheme = settingsService.getCachedTheme() as ThemeName;
@@ -62,10 +62,10 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
         setSelectedEmoji(cachedEmoji);
         // Store original theme for potential cancellation
         originalThemeRef.current = cachedTheme;
+        setInitialSnapshot({ theme: cachedTheme, emoji: cachedEmoji });
       }
     } catch (err) {
       setError('Failed to load settings');
-      console.error('Settings load error:', err);
     } finally {
       setLoading(false);
     }
@@ -99,7 +99,6 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
       onClose();
     } catch (err) {
       setError('Failed to save settings. Changes will be cached locally.');
-      console.error('Settings save error:', err);
       
       // Still update cache for immediate UI response
       settingsService.setCachedTheme(selectedTheme);
@@ -120,9 +119,6 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
     document.documentElement.classList.add(themeClass);
     document.body.classList.add(themeClass);
     
-    // Debug logging
-
-    
     // Force a style recalculation and repaint
     document.documentElement.offsetHeight;
     document.body.offsetHeight;
@@ -139,11 +135,8 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
     }
     
     document.documentElement.style.setProperty('--primary', primaryColor);
-    console.log('Theme:', theme, 'Primary color set to:', primaryColor);
-    console.log('CSS variable value:', document.documentElement.style.getPropertyValue('--primary'));
     
     // Dispatch custom event to notify other components about theme change
-    console.log('Dispatching themeChanged event for:', theme);
     window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme } }));
   };
 
@@ -160,6 +153,10 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
     }
     onClose();
   };
+
+  const isDirty = initialSnapshot
+    ? initialSnapshot.theme !== selectedTheme || initialSnapshot.emoji !== selectedEmoji
+    : true;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -197,6 +194,7 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
                         setSelectedTheme(e.target.value as ThemeName);
                       }}
                       className="w-4 h-4 text-tasktaco-600 border-gray-300 focus:ring-tasktaco-500"
+                      aria-checked={selectedTheme === theme}
                     />
                     <label htmlFor={theme} className="flex items-center gap-3 cursor-pointer flex-1">
                       <span className="text-lg">{config.emoji}</span>
@@ -251,7 +249,7 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
           <Button variant="outline" onClick={handleCancel} disabled={loading}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={loading} style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}>
+          <Button onClick={handleSave} disabled={loading || !isDirty} style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}>
             {loading ? 'Saving...' : 'Save Settings'}
           </Button>
         </DialogFooter>

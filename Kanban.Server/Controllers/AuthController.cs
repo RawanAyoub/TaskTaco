@@ -1,13 +1,20 @@
-namespace Kanban.Server.Controllers;
-
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Kanban.Domain.Entities;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
+// <copyright file="AuthController.cs" company="TaskTaco">
+//   MIT License. See LICENSE in the project root for license information.
+// </copyright>
+// <summary>
+//   Authentication controller for registration, login, and current user endpoints.
+// </summary>
+namespace Kanban.Server.Controllers
+{
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Security.Claims;
+    using System.Text;
+    using Kanban.Domain.Entities;
+    using Microsoft.AspNetCore.Authorization;
+    using Kanban.Server.Models;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.IdentityModel.Tokens;
 
 /// <summary>
 /// Controller for user authentication operations including registration, login, and token refresh.
@@ -16,8 +23,8 @@ using Microsoft.IdentityModel.Tokens;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly UserManager<User> _userManager;
-    private readonly IConfiguration _configuration;
+    private readonly UserManager<User> userManager;
+    private readonly IConfiguration configuration;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AuthController"/> class.
@@ -26,8 +33,8 @@ public class AuthController : ControllerBase
     /// <param name="configuration">The application configuration.</param>
     public AuthController(UserManager<User> userManager, IConfiguration configuration)
     {
-        _userManager = userManager;
-        _configuration = configuration;
+        this.userManager = userManager;
+        this.configuration = configuration;
     }
 
     /// <summary>
@@ -36,6 +43,7 @@ public class AuthController : ControllerBase
     /// <param name="model">The registration model.</param>
     /// <returns>Registration result with user information.</returns>
     [HttpPost("register")]
+    [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] RegisterModel model)
     {
         var user = new User
@@ -46,12 +54,12 @@ public class AuthController : ControllerBase
             EmailConfirmed = true,
         };
 
-        var result = await _userManager.CreateAsync(user, model.Password);
+    var result = await this.userManager.CreateAsync(user, model.Password);
 
         if (result.Succeeded)
         {
-            var token = await GenerateJwtTokenAsync(user);
-            return Ok(new
+            var token = this.GenerateJwtToken(user);
+            return this.Ok(new
             {
                 token,
                 user = new
@@ -63,7 +71,7 @@ public class AuthController : ControllerBase
             });
         }
 
-        return BadRequest(result.Errors);
+        return this.BadRequest(result.Errors);
     }
 
     /// <summary>
@@ -72,13 +80,14 @@ public class AuthController : ControllerBase
     /// <param name="model">The login model.</param>
     /// <returns>Authentication result with JWT token.</returns>
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginModel model)
     {
-        var user = await _userManager.FindByEmailAsync(model.Email);
-        if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+        var user = await this.userManager.FindByEmailAsync(model.Email);
+        if (user != null && await this.userManager.CheckPasswordAsync(user, model.Password))
         {
-            var token = await GenerateJwtTokenAsync(user);
-            return Ok(new
+            var token = this.GenerateJwtToken(user);
+            return this.Ok(new
             {
                 token,
                 user = new
@@ -90,7 +99,7 @@ public class AuthController : ControllerBase
             });
         }
 
-        return Unauthorized(new { message = "Invalid email or password" });
+        return this.Unauthorized(new { message = "Invalid email or password" });
     }
 
     /// <summary>
@@ -101,19 +110,19 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetCurrentUser()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null)
         {
-            return Unauthorized();
+            return this.Unauthorized();
         }
 
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await this.userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            return NotFound();
+            return this.NotFound();
         }
 
-        return Ok(new
+        return this.Ok(new
         {
             user.Id,
             user.Name,
@@ -127,7 +136,7 @@ public class AuthController : ControllerBase
     /// </summary>
     /// <param name="user">The user to generate the token for.</param>
     /// <returns>A JWT token string.</returns>
-    private async Task<string> GenerateJwtTokenAsync(User user)
+    private string GenerateJwtToken(User user)
     {
         var claims = new[]
         {
@@ -138,53 +147,17 @@ public class AuthController : ControllerBase
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-            _configuration["Jwt:Key"] ?? "your-super-secure-key-that-is-at-least-256-bits"));
+            this.configuration["Jwt:Key"] ?? "your-super-secure-key-that-is-at-least-256-bits"));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"] ?? "TaskTaco",
-            audience: _configuration["Jwt:Audience"] ?? "TaskTaco",
+            issuer: this.configuration["Jwt:Issuer"] ?? "TaskTaco",
+            audience: this.configuration["Jwt:Audience"] ?? "TaskTaco",
             claims: claims,
             expires: DateTime.Now.AddDays(7),
             signingCredentials: creds);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+    return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
-
-/// <summary>
-/// Model for user registration requests.
-/// </summary>
-public class RegisterModel
-{
-    /// <summary>
-    /// Gets or sets the user's display name.
-    /// </summary>
-    public required string Name { get; set; }
-
-    /// <summary>
-    /// Gets or sets the user's email address.
-    /// </summary>
-    public required string Email { get; set; }
-
-    /// <summary>
-    /// Gets or sets the user's password.
-    /// </summary>
-    public required string Password { get; set; }
-}
-
-/// <summary>
-/// Model for user login requests.
-/// </summary>
-public class LoginModel
-{
-    /// <summary>
-    /// Gets or sets the user's email address.
-    /// </summary>
-    public required string Email { get; set; }
-
-    /// <summary>
-    /// Gets or sets the user's password.
-    /// </summary>
-    public required string Password { get; set; }
 }

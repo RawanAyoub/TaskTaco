@@ -43,7 +43,6 @@ export function ConfirmDialog({
       setOpen(false);
     } catch (error) {
       // Let the parent handle the error
-      console.error('Confirm action failed:', error);
       setErrorMessage(error instanceof Error ? error.message : 'Action failed');
     } finally {
       setLoading(false);

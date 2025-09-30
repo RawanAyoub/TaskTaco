@@ -1,0 +1,12 @@
+{
+  "settings": {
+    "documentationRules": {
+      "xmlHeader": false,
+      "fileHeaderTemplate": "Copyright (c) TaskTaco. All rights reserved.",
+      "documentExposedElements": true,
+      "documentInternalElements": false,
+      "documentPrivateElements": false,
+      "documentInterfaces": true
+    }
+  }
+}

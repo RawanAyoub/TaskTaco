@@ -21,7 +21,6 @@ export function ProfilePictureUpload({ className }: ProfilePictureUploadProps) {
   // Update local state when user profile picture changes
   useEffect(() => {
     if (user?.profilePicture !== currentProfilePicture) {
-      console.log('ProfilePictureUpload - Profile picture changed from', currentProfilePicture, 'to', user?.profilePicture);
       setCurrentProfilePicture(user?.profilePicture);
     }
   }, [user?.profilePicture, currentProfilePicture]);
@@ -36,9 +35,7 @@ export function ProfilePictureUpload({ className }: ProfilePictureUploadProps) {
     ? `/${currentProfilePicture}?t=${Date.now()}`
     : undefined;
   
-  console.log('ProfilePictureUpload - user.profilePicture:', user?.profilePicture);
-  console.log('ProfilePictureUpload - currentProfilePicture:', currentProfilePicture);
-  console.log('ProfilePictureUpload - profilePictureUrl:', profilePictureUrl);
+  // No console debug logs in production
 
   const handleFileSelect = () => {
     fileInputRef.current?.click();
@@ -60,26 +57,19 @@ export function ProfilePictureUpload({ className }: ProfilePictureUploadProps) {
     setSuccess(null);
 
     try {
-      console.log('ProfilePictureUpload - Before upload, user:', user);
       await profileService.uploadProfilePicture(file);
       setSuccess('Profile picture uploaded successfully!');
       
       // Refresh user data to update the profile picture in the UI
-      console.log('ProfilePictureUpload - Calling refreshUser...');
       await refreshUser();
-      console.log('ProfilePictureUpload - After refreshUser completed');
-      
-      // Force a small delay to ensure state has updated
-      setTimeout(() => {
-        console.log('ProfilePictureUpload - User state after delay:', user);
-      }, 100);
+      // small delay to ensure state has updated
+      setTimeout(() => {}, 100);
       
       // Clear the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     } catch (err) {
-      console.error('Upload failed:', err);
       setError(err instanceof Error ? err.message : 'Failed to upload profile picture');
     } finally {
       setIsUploading(false);
@@ -98,7 +88,6 @@ export function ProfilePictureUpload({ className }: ProfilePictureUploadProps) {
       // Refresh user data to clear the profile picture in the UI
       await refreshUser();
     } catch (err) {
-      console.error('Delete failed:', err);
       setError(err instanceof Error ? err.message : 'Failed to remove profile picture');
     } finally {
       setIsUploading(false);
@@ -113,8 +102,7 @@ export function ProfilePictureUpload({ className }: ProfilePictureUploadProps) {
           <AvatarImage 
             src={profilePictureUrl} 
             alt={`${user?.name}'s profile picture`}
-            onError={(e) => console.error('ProfilePictureUpload - Image failed to load:', profilePictureUrl, e)}
-            onLoad={() => console.log('ProfilePictureUpload - Image loaded successfully:', profilePictureUrl)}
+            onError={() => setError('We could not load your profile picture. Try uploading again.')}
           />
           <AvatarFallback className="text-xl">
             {initials}

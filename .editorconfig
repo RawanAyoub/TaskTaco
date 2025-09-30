@@ -1,0 +1,22 @@
+root = true
+
+[*.cs]
+dotnet_diagnostic.SA0001.severity = none
+dotnet_diagnostic.SA1633.severity = suggestion
+dotnet_diagnostic.SA1636.severity = none
+dotnet_diagnostic.SA1200.severity = suggestion
+dotnet_diagnostic.SA1208.severity = suggestion
+dotnet_diagnostic.SA1210.severity = suggestion
+dotnet_diagnostic.SA1508.severity = suggestion
+dotnet_diagnostic.SA1137.severity = suggestion
+dotnet_diagnostic.SA1413.severity = suggestion
+
+# EF Core Migrations: turn off most style rules (generated code)
+[Kanban.Infrastructure/Migrations/**.cs]
+generated_code = true
+dotnet_diagnostic.SA0001.severity = none
+dotnet_diagnostic.SA1200.severity = none
+dotnet_diagnostic.SA1505.severity = none
+dotnet_diagnostic.SA1508.severity = none
+dotnet_diagnostic.SA1633.severity = none
+dotnet_diagnostic.SA1413.severity = none

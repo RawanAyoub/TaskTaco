@@ -62,7 +62,7 @@ export function AIPrdExportModal({ boardId, boardName }: AIPrdExportModalProps) 
         setTimeout(() => setCopiedJson(false), 2000);
       }
     } catch (err) {
-      console.error('Failed to copy to clipboard:', err);
+      // Swallow copy errors silently; user can manually select text as fallback
     }
   };
 

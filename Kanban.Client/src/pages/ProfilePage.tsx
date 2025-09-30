@@ -40,7 +40,6 @@ export function ProfilePage({ onBack }: ProfilePageProps) {
           email: profile.email
         });
       } catch (err) {
-        console.error('Failed to load profile:', err);
         setError('Failed to load profile data');
       } finally {
         setIsLoading(false);
@@ -96,7 +95,6 @@ export function ProfilePage({ onBack }: ProfilePageProps) {
 
       setSuccess('Profile updated successfully');
     } catch (err) {
-      console.error('Failed to update profile:', err);
       setError(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
       setIsSaving(false);

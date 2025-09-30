@@ -51,7 +51,7 @@ export function KanbanColumn({ column, tasks, onUpdate }: KanbanColumnProps) {
       setIsAddingTask(false);
       onUpdate(column.boardId);
     } catch (error) {
-      console.error('Failed to create task:', error);
+      // Failed to create task; consider showing a toast in future
     }
   };
 
