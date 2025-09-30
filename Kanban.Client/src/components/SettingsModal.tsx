@@ -4,18 +4,18 @@ import { Button } from './ui/button';
 import { Label } from './ui/label';
 import { AVAILABLE_THEMES, THEME_CONFIG, type ThemeName } from '../types/user';
 import { settingsService } from '../services/settingsService';
-import type { UserSettings, UpdateUserSettingsRequest } from '../types/user';
+import type { UserSettingsResponse, UpdateUserSettingsRequest } from '../types/user';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSettingsUpdate?: (settings: UserSettings) => void;
+  onSettingsUpdate?: (settings: UserSettingsResponse) => void;
 }
 
 const EMOJI_OPTIONS = ['🌮', '🥑', '🌶️', '🚀', '⭐', '🎯', '🔥', '💡', '✨', '🏆'];
 
 export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsModalProps) {
-  const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [settings, setSettings] = useState<UserSettingsResponse | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<ThemeName>(AVAILABLE_THEMES.CLASSIC_TACO);
   const [selectedEmoji, setSelectedEmoji] = useState('🌮');
   const [loading, setLoading] = useState(false);
@@ -85,7 +85,6 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
 
       // Update via API
       const updatedSettings = await settingsService.updateUserSettings(updateData);
-
       
       // Update cached values for immediate UI response
       settingsService.setCachedTheme(selectedTheme);
@@ -236,7 +235,7 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
           {/* Theme Preview */}
           <div className="space-y-2">
             <Label>Preview</Label>
-            <div className="border rounded p-3 bg-card">
+            <div className="border rounded p-3 bg-card" style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg">{selectedEmoji}</span>
                 <span className="font-medium">{THEME_CONFIG[selectedTheme].name}</span>
@@ -252,7 +251,7 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
           <Button variant="outline" onClick={handleCancel} disabled={loading}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={loading} variant="secondary">
+          <Button onClick={handleSave} disabled={loading} style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}>
             {loading ? 'Saving...' : 'Save Settings'}
           </Button>
         </DialogFooter>

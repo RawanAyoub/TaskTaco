@@ -72,7 +72,7 @@ public class UserControllerTests : IClassFixture<CustomWebApplicationFactory<Pro
         var unauthenticatedClient = unauthenticatedFactory.CreateClient();
 
         // Act
-        var response = await unauthenticatedClient.GetAsync("/api/User/profile");
+        var response = await unauthenticatedClient.GetAsync("/api/user/profile");
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -85,7 +85,7 @@ public class UserControllerTests : IClassFixture<CustomWebApplicationFactory<Pro
     public async Task GetProfile_ReturnsUserProfile_WhenAuthenticated()
     {
         // Act
-        var response = await this.client.GetAsync("/api/User/profile");
+        var response = await this.client.GetAsync("/api/user/profile");
 
         // Assert
         response.EnsureSuccessStatusCode();
@@ -136,7 +136,7 @@ public class UserControllerTests : IClassFixture<CustomWebApplicationFactory<Pro
     public async Task GetSettings_ReturnsUserSettings_WhenAuthenticated()
     {
         // Act
-        var response = await this.client.GetAsync("/api/User/settings");
+        var response = await this.client.GetAsync("/api/user/settings");
 
         // Assert
         response.EnsureSuccessStatusCode();
@@ -168,7 +168,7 @@ public class UserControllerTests : IClassFixture<CustomWebApplicationFactory<Pro
         response.EnsureSuccessStatusCode();
 
         // Verify the settings were updated
-        var getResponse = await this.client.GetAsync("/api/User/settings");
+        var getResponse = await this.client.GetAsync("/api/user/settings");
         getResponse.EnsureSuccessStatusCode();
         
         var content = await getResponse.Content.ReadAsStringAsync();

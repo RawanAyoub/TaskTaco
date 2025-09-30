@@ -33,6 +33,7 @@ public class AIPrdExportController : ControllerBase
         {
             board.Id,
             board.Name,
+            board.Description,
             Columns = board.Columns.Select(c => new
             {
                 c.Id,
@@ -57,20 +58,21 @@ public class AIPrdExportController : ControllerBase
             WriteIndented = true 
         });
 
-        var prompt = GenerateAIPrdPrompt(board.Name, jsonData);
+        var prompt = GenerateAIPrdPrompt(board.Name, board.Description ?? string.Empty, jsonData);
 
         return Ok(new { json = jsonData, prompt });
     }
 
-    private string GenerateAIPrdPrompt(string boardName, string jsonData)
+    private string GenerateAIPrdPrompt(string boardName, string boardDescription, string jsonData)
     {
         return $@"# AI PRD Generation Request
 
 ## Context
-I'm working on a Kanban project management tool called LocalFreeKanban. I need you to analyze the current board state and generate a comprehensive Product Requirements Document (PRD).
+I'm working on a Kanban project management tool called TaskTaco. I need you to analyze the current board state and generate a comprehensive Product Requirements Document (PRD).
 
 ## Current Board Data
 Board Name: {boardName}
+Board Description: {(string.IsNullOrWhiteSpace(boardDescription) ? "(none provided)" : boardDescription)}
 
 ```json
 {jsonData}
@@ -87,7 +89,7 @@ Based on the board structure and tasks above, please generate a PRD that include
 6. **Implementation Timeline** - Suggested development phases
 
 ## Output Format
-Please structure your response as a professional PRD document with clear sections, bullet points, and actionable requirements that a development team could implement.
+Please structure your response as a professional PRD document with clear sections, bullet points, and actionable requirements that a development team could implement. The output should be formatted so it can be easily copied and saved as a PDF by the user.
 
 ## Additional Context
 - This is for a privacy-first, offline-capable Kanban tool

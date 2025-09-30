@@ -110,11 +110,12 @@ public class Task
     {
         try
         {
-            var items = JsonSerializer.Deserialize<List<dynamic>>(Checklist) ?? new List<dynamic>();
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var items = JsonSerializer.Deserialize<List<ChecklistItemJson>>(Checklist, options) ?? new List<ChecklistItemJson>();
             return items.Select(item => new ValueObjects.ChecklistItem(
-                item.GetProperty("id").GetString() ?? Guid.NewGuid().ToString(),
-                item.GetProperty("text").GetString() ?? "",
-                item.GetProperty("done").GetBoolean()
+                item.Id ?? Guid.NewGuid().ToString(),
+                item.Text ?? "",
+                item.Done
             )).ToList();
         }
         catch
@@ -161,4 +162,25 @@ public class Task
     /// Determines if the task is overdue.
     /// </summary>
     public bool IsOverdue => DueDate.HasValue && DueDate.Value < DateTime.UtcNow;
+}
+
+/// <summary>
+/// JSON representation of a checklist item for serialization/deserialization.
+/// </summary>
+internal class ChecklistItemJson
+{
+    /// <summary>
+    /// Gets or sets the unique identifier for the checklist item.
+    /// </summary>
+    public string? Id { get; set; }
+
+    /// <summary>
+    /// Gets or sets the text content of the checklist item.
+    /// </summary>
+    public string? Text { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the checklist item is completed.
+    /// </summary>
+    public bool Done { get; set; }
 }

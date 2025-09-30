@@ -102,7 +102,7 @@ export function EditBoardDialog({ board, onBoardUpdated, trigger }: EditBoardDia
 
           <div className="flex justify-end space-x-3 pt-2">
             <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isSaving}>Cancel</Button>
-            <Button type="submit" variant="secondary" disabled={isSaving || !!validate()} className="min-w-[100px]">
+            <Button type="submit" style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }} disabled={isSaving || !!validate()} className="min-w-[100px]">
               {isSaving ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</>) : (<><Pencil className="w-4 h-4 mr-2" /> Save</>)}
             </Button>
           </div>

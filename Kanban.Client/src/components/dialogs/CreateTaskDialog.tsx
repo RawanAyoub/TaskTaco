@@ -175,7 +175,7 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto bg-background text-foreground border shadow-2xl" onKeyDown={handleKeyDown}>
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto border shadow-2xl" onKeyDown={handleKeyDown}>
         <DialogHeader>
           <DialogTitle className="text-foreground font-semibold">
             Create New Task

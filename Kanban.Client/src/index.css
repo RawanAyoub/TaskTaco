@@ -176,19 +176,20 @@ html.theme-classic-taco,
   --ring: 217 119 6 !important;                 /* amber-600 for focus rings */
 }
 
-/* Guacamole Theme (lime/emerald) */
+/* Guacamole Theme (avocado-skin secondary text) */
 html.dark.theme-guacamole,
 html.theme-guacamole,
 .dark.theme-guacamole,
 .theme-guacamole {
-  --primary: 101 163 13 !important;             /* lime-600 */
-  --primary-foreground: 255 255 255 !important; /* white */
-  --secondary: 16 185 129 !important;           /* emerald-500 */
-  --secondary-foreground: 255 255 255 !important; /* white */
-  --accent: 234 179 8 !important;               /* yellow-500 */
-  --accent-foreground: 0 0 0 !important;        /* black */
-  --ring: 101 163 13 !important;                /* lime-600 for focus rings */
+  --primary: 101 163 13 !important;              /* lime-600 */
+  --primary-foreground: 255 255 255 !important;  /* white */
+  --secondary: 236 253 245 !important;           /* emerald-50 (soft mint bg) */
+  --secondary-foreground: 22 101 52 !important;  /* emerald-800 (avocado skin green text) */
+  --accent: 234 179 8 !important;                /* yellow-500 */
+  --accent-foreground: 23 23 23 !important;      /* near-black */
+  --ring: 101 163 13 !important;                 /* lime-600 for focus rings */
 }
+
 
 /* Salsa Theme (rose/red) */
 html.dark.theme-salsa,

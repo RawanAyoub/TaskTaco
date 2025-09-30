@@ -1,39 +1,16 @@
-import type { UserSettings, UpdateUserSettingsRequest } from '../types/user';
-
-const API_BASE = '/api';
+import { api } from './http';
+import type { UserSettingsResponse, UpdateUserSettingsRequest } from '../types/user';
 
 class SettingsService {
-  async getUserSettings(): Promise<UserSettings> {
-    const response = await fetch(`${API_BASE}/user/settings`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch user settings');
-    }
-
-    return response.json();
+  async getUserSettings(): Promise<UserSettingsResponse> {
+    return api<UserSettingsResponse>('/user/settings');
   }
 
-  async updateUserSettings(settings: UpdateUserSettingsRequest): Promise<UserSettings> {
-    const response = await fetch(`${API_BASE}/user/settings`, {
+  async updateUserSettings(settings: UpdateUserSettingsRequest): Promise<UserSettingsResponse> {
+    return api<UserSettingsResponse>('/user/settings', {
       method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(settings),
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to update user settings');
-    }
-
-    return response.json();
   }
 
   // Local storage helpers for immediate UI updates
@@ -43,7 +20,6 @@ class SettingsService {
 
   setCachedTheme(theme: string): void {
     localStorage.setItem('color-theme', theme);
-
   }
 
   getCachedDefaultEmoji(): string {

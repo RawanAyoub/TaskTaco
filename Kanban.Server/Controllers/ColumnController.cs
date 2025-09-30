@@ -72,8 +72,15 @@ public class ColumnController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var column = await _columnService.CreateColumnAsync(boardId, request.Name, request.Order);
-        return CreatedAtAction(nameof(GetColumn), new { id = column.Id }, column);
+        try
+        {
+            var column = await _columnService.CreateColumnAsync(boardId, request.Name, request.Order);
+            return CreatedAtAction(nameof(GetColumn), new { id = column.Id }, column);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     /// <summary>
@@ -93,13 +100,20 @@ public class ColumnController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var success = await _columnService.UpdateColumnAsync(id, request.Name, request.Order);
-        if (!success)
+        try
         {
-            return NotFound();
-        }
+            var success = await _columnService.UpdateColumnAsync(id, request.Name, request.Order);
+            if (!success)
+            {
+                return NotFound();
+            }
 
-        return NoContent();
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     /// <summary>

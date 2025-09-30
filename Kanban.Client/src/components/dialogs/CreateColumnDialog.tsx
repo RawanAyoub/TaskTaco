@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Modal, ModalContent, ModalHeader, ModalTitle, ModalTrigger } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Loader2 } from 'lucide-react';
@@ -93,14 +93,14 @@ export function CreateColumnDialog({ onColumnCreate, trigger }: CreateColumnDial
   const isNearLimit = charCount > 25;
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
+    <Modal open={isOpen} onOpenChange={handleOpenChange}>
+      <ModalTrigger asChild>
         {trigger || defaultTrigger}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]" onKeyDown={handleKeyDown}>
-        <DialogHeader>
-          <DialogTitle>Create New Column</DialogTitle>
-        </DialogHeader>
+      </ModalTrigger>
+      <ModalContent className="sm:max-w-[425px]" onKeyDown={handleKeyDown}>
+        <ModalHeader>
+          <ModalTitle>Create New Column</ModalTitle>
+        </ModalHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Column Name */}
           <div className="space-y-2">
@@ -163,7 +163,7 @@ export function CreateColumnDialog({ onColumnCreate, trigger }: CreateColumnDial
             </div>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ModalContent>
+    </Modal>
   );
 }

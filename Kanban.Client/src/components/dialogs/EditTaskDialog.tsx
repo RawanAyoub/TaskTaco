@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Modal, ModalContent, ModalHeader, ModalTitle, ModalTrigger } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -138,16 +138,16 @@ export function EditTaskDialog({ task, onTaskUpdate, trigger }: EditTaskDialogPr
   const isDescriptionNearLimit = formData.description.length > 400;
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
+    <Modal open={isOpen} onOpenChange={handleOpenChange}>
+      <ModalTrigger asChild>
         {trigger}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-background text-foreground" onKeyDown={handleKeyDown}>
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-foreground flex items-center gap-2">
+      </ModalTrigger>
+      <ModalContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto" onKeyDown={handleKeyDown}>
+        <ModalHeader>
+          <ModalTitle className="text-xl font-semibold text-foreground flex items-center gap-2">
             <Edit className="w-5 h-5" />
             Edit Task
-          </DialogTitle>
+          </ModalTitle>
           
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>Progress:</span>
@@ -159,7 +159,7 @@ export function EditTaskDialog({ task, onTaskUpdate, trigger }: EditTaskDialogPr
               <div className={`w-2 h-2 rounded-full ${formData.stickers.length > 0 ? 'bg-secondary/70' : 'bg-muted'}`} title="Stickers" />
             </div>
           </div>
-        </DialogHeader>
+        </ModalHeader>
 
         <form onSubmit={handleSubmit}>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -310,7 +310,7 @@ export function EditTaskDialog({ task, onTaskUpdate, trigger }: EditTaskDialogPr
             Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Ctrl+Enter</kbd> to update quickly
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ModalContent>
+    </Modal>
   );
 }

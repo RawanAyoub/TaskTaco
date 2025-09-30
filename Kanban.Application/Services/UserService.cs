@@ -43,10 +43,13 @@ public interface IUserService
     Task<bool> UpdateUserSettingsAsync(string userId, string theme, string defaultEmoji);
 
     /// <summary>
-    /// Gets all available theme options.
+    /// Changes a user's password.
     /// </summary>
-    /// <returns>Array of available theme names.</returns>
-    string[] GetAvailableThemes();
+    /// <param name="userId">The user ID.</param>
+    /// <param name="currentPassword">The current password.</param>
+    /// <param name="newPassword">The new password.</param>
+    /// <returns>True if the password change was successful, otherwise false.</returns>
+    Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword);
 }
 
 /// <summary>
@@ -158,5 +161,18 @@ public class UserService : IUserService
     public string[] GetAvailableThemes()
     {
         return UserSettings.AvailableThemes;
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+    {
+        var user = await this.userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return false;
+        }
+
+        var result = await this.userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        return result.Succeeded;
     }
 }

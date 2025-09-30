@@ -224,6 +224,235 @@ public class TaskControllerTests : IClassFixture<CustomWebApplicationFactory<Kan
     }
 
     /// <summary>
+    /// Tests creating and retrieving a task with enhanced fields (labels, checklist, stickers).
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    [Fact]
+    public async Task CreateTask_WithEnhancedFields_ReturnsTaskWithEnhancedFields()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        // Create a board and column
+        var createBoardRequest = new { name = "Test Board" };
+        var createBoardResponse = await client.PostAsJsonAsync("/api/board", createBoardRequest);
+        Assert.Equal(HttpStatusCode.Created, createBoardResponse.StatusCode);
+        var createBoardResult = await createBoardResponse.Content.ReadFromJsonAsync<CreateBoardResponse>();
+        Assert.NotNull(createBoardResult);
+
+        var createColumnRequest = new { name = "To Do", order = 0 };
+        var createColumnResponse = await client.PostAsJsonAsync($"/api/column/board/{createBoardResult.Id}", createColumnRequest);
+        Assert.Equal(HttpStatusCode.Created, createColumnResponse.StatusCode);
+        var createColumnResult = await createColumnResponse.Content.ReadFromJsonAsync<CreateColumnResponse>();
+        Assert.NotNull(createColumnResult);
+
+        var createTaskRequest = new
+        {
+            columnId = createColumnResult.Id,
+            title = "Enhanced Task",
+            description = "Task with labels, checklist, and stickers",
+            status = "To Do",
+            priority = "High",
+            dueDate = DateTime.UtcNow.AddDays(3).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+            labels = new[] { "backend", "urgent", "feature" },
+            checklist = new[]
+            {
+                new { id = "item1", text = "Design database schema", done = true },
+                new { id = "item2", text = "Implement API endpoints", done = false },
+                new { id = "item3", text = "Write unit tests", done = false }
+            },
+            stickers = new[] { "🔥", "⚡", "🚀" }
+        };
+
+        // Act - Create task
+        var response = await client.PostAsJsonAsync("/api/task", createTaskRequest);
+
+        // Assert creation
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var result = await response.Content.ReadFromJsonAsync<TaskResponse>();
+        Assert.NotNull(result);
+        Assert.True(result.Id > 0);
+        Assert.Equal("Enhanced Task", result.Title);
+        Assert.Equal("High", result.Priority);
+        Assert.Contains("backend", result.Labels);
+        Assert.Contains("urgent", result.Labels);
+        Assert.Contains("feature", result.Labels);
+        Assert.Equal(3, result.Checklist.Count);
+        Assert.Contains(result.Checklist, item => item.Text == "Design database schema" && item.Done);
+        Assert.Contains(result.Checklist, item => item.Text == "Implement API endpoints" && !item.Done);
+        Assert.Contains("🔥", result.Stickers);
+        Assert.Contains("⚡", result.Stickers);
+        Assert.Contains("🚀", result.Stickers);
+
+        // Act - Retrieve task by ID
+        var getResponse = await client.GetAsync($"/api/task/{result.Id}");
+
+        // Assert retrieval
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+        var retrievedTask = await getResponse.Content.ReadFromJsonAsync<TaskResponse>();
+        Assert.NotNull(retrievedTask);
+        Assert.Equal(result.Id, retrievedTask.Id);
+        Assert.Equal("Enhanced Task", retrievedTask.Title);
+        Assert.Equal("High", retrievedTask.Priority);
+        Assert.Equal(result.Labels, retrievedTask.Labels);
+        Assert.Equal(result.Checklist.Count, retrievedTask.Checklist.Count);
+        Assert.Equal(result.Stickers, retrievedTask.Stickers);
+    }
+
+    /// <summary>
+    /// Tests updating a task with enhanced fields.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    [Fact]
+    public async Task UpdateTask_WithEnhancedFields_UpdatesSuccessfully()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        // Create a task first
+        var createRequest = new
+        {
+            columnId = 1,
+            title = "Original Task",
+            description = "Original Description",
+            status = "To Do",
+            priority = "Medium",
+            labels = new[] { "original" },
+            checklist = new[] { new { id = "orig1", text = "Original item", done = false } },
+            stickers = new[] { "📝" }
+        };
+        var createResponse = await client.PostAsJsonAsync("/api/task", createRequest);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var createResult = await createResponse.Content.ReadFromJsonAsync<CreateTaskResponse>();
+        Assert.NotNull(createResult);
+
+        // Now update the task with enhanced fields
+        var updateRequest = new
+        {
+            title = "Updated Enhanced Task",
+            description = "Updated with enhanced fields",
+            status = "In Progress",
+            priority = "High",
+            dueDate = DateTime.UtcNow.AddDays(1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+            labels = new[] { "updated", "backend", "urgent" },
+            checklist = new[]
+            {
+                new { id = "new1", text = "New checklist item", done = true },
+                new { id = "new2", text = "Another item", done = false }
+            },
+            stickers = new[] { "🔥", "⚡" }
+        };
+
+        // Act
+        var response = await client.PutAsJsonAsync($"/api/task/{createResult.Id}", updateRequest);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        // Verify the update by retrieving the task
+        var getResponse = await client.GetAsync($"/api/task/{createResult.Id}");
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+        var updatedTask = await getResponse.Content.ReadFromJsonAsync<TaskResponse>();
+        Assert.NotNull(updatedTask);
+        Assert.Equal("Updated Enhanced Task", updatedTask.Title);
+        Assert.Equal("High", updatedTask.Priority);
+        Assert.Contains("updated", updatedTask.Labels);
+        Assert.Contains("backend", updatedTask.Labels);
+        Assert.Contains("urgent", updatedTask.Labels);
+        Assert.Equal(2, updatedTask.Checklist.Count);
+        Assert.Contains(updatedTask.Checklist, item => item.Text == "New checklist item" && item.Done);
+        Assert.Contains("🔥", updatedTask.Stickers);
+        Assert.Contains("⚡", updatedTask.Stickers);
+    }
+
+    /// <summary>
+    /// Response model for task operations.
+    /// </summary>
+    private class TaskResponse
+    {
+        /// <summary>
+        /// Gets or sets the task ID.
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the column ID.
+        /// </summary>
+        public int ColumnId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the task title.
+        /// </summary>
+        public string Title { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the task description.
+        /// </summary>
+        public string Description { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the task priority.
+        /// </summary>
+        public string Priority { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the task status.
+        /// </summary>
+        public string Status { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the due date.
+        /// </summary>
+        public string? DueDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the labels.
+        /// </summary>
+        public List<string> Labels { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the checklist items.
+        /// </summary>
+        public List<ChecklistItemResponse> Checklist { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the stickers.
+        /// </summary>
+        public List<string> Stickers { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the order.
+        /// </summary>
+        public int Order { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the task is overdue.
+        /// </summary>
+        public bool IsOverdue { get; set; }
+    }
+
+    /// <summary>
+    /// Response model for checklist items.
+    /// </summary>
+    private class ChecklistItemResponse
+    {
+        /// <summary>
+        /// Gets or sets the checklist item ID.
+        /// </summary>
+        public string Id { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the checklist item text.
+        /// </summary>
+        public string Text { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the item is done.
+        /// </summary>
+        public bool Done { get; set; }
+    }
+
+    /// <summary>
     /// Response model for creating a board.
     /// </summary>
     private class CreateBoardResponse

@@ -3,6 +3,7 @@ using System;
 using Kanban.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Kanban.Infrastructure.Migrations
 {
     [DbContext(typeof(KanbanDbContext))]
-    partial class KanbanDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250930144405_AddUserSettingsTable")]
+    partial class AddUserSettingsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -62,8 +65,7 @@ namespace Kanban.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BoardId", "Name")
-                        .IsUnique();
+                    b.HasIndex("BoardId");
 
                     b.ToTable("Columns");
                 });

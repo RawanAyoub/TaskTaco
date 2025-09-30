@@ -1,7 +1,8 @@
 import { api } from './http';
 import type { 
   UserProfileDto, 
-  UpdateUserProfileRequest, 
+  UpdateUserProfileRequest,
+  ChangePasswordRequest,
   UserSettingsDto, 
   UpdateUserSettingsRequest 
 } from '@/types/api';
@@ -11,6 +12,12 @@ export const UserService = {
   getProfile: () => api<UserProfileDto>('/user/profile'),
   updateProfile: (req: UpdateUserProfileRequest) => api<void>('/user/profile', { 
     method: 'PUT', 
+    body: JSON.stringify(req) 
+  }),
+
+  // Password change endpoint
+  changePassword: (req: ChangePasswordRequest) => api<void>('/user/password', { 
+    method: 'PATCH', 
     body: JSON.stringify(req) 
   }),
 

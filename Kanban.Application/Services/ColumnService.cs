@@ -107,6 +107,15 @@ public class ColumnService : IColumnService
     /// <returns>The created column.</returns>
     public async Task<ColumnEntity> CreateColumnAsync(int boardId, string name, int order)
     {
+        // Check if a column with the same name already exists in this board
+        var existingColumn = await _context.Columns
+            .FirstOrDefaultAsync(c => c.BoardId == boardId && c.Name == name);
+
+        if (existingColumn != null)
+        {
+            throw new InvalidOperationException($"A column with the name '{name}' already exists in this board.");
+        }
+
         // Shift existing columns to make room for the new one
         var columnsToShift = await _context.Columns
             .Where(c => c.BoardId == boardId && c.Order >= order)
@@ -143,6 +152,18 @@ public class ColumnService : IColumnService
         if (column == null)
         {
             return false;
+        }
+
+        // Check if another column with the same name already exists in this board
+        if (column.Name != name)
+        {
+            var existingColumn = await _context.Columns
+                .FirstOrDefaultAsync(c => c.BoardId == column.BoardId && c.Name == name && c.Id != id);
+
+            if (existingColumn != null)
+            {
+                throw new InvalidOperationException($"A column with the name '{name}' already exists in this board.");
+            }
         }
 
         // If order changed, we need to reorder columns

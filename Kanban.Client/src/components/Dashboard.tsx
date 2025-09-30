@@ -117,7 +117,7 @@ export function Dashboard({ onSelectBoard }: DashboardProps) {
           <CreateBoardDialog 
             onBoardCreated={handleBoardCreated}
             trigger={
-              <Button size="lg" variant="secondary" className="shadow-md transition-all duration-200">
+              <Button size="lg" style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }} className="shadow-md transition-all duration-200">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Your First Board 🌮
               </Button>

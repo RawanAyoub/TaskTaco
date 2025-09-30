@@ -22,6 +22,7 @@ interface AuthContextType extends AuthState {
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   clearError: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const initialState: AuthState = {
@@ -141,12 +142,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'CLEAR_ERROR' });
   };
 
+  const refreshUser = async () => {
+    try {
+      console.log('AuthContext - refreshUser called');
+      const user = await authService.getCurrentUser();
+      console.log('AuthContext - refreshUser received user:', user);
+      dispatch({ type: 'AUTH_SUCCESS', payload: user });
+    } catch (error) {
+      console.error('AuthContext - refreshUser failed:', error);
+      // If refresh fails, logout the user
+      authService.logout();
+      dispatch({ type: 'AUTH_LOGOUT' });
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     ...state,
     login,
     register,
     logout,
     clearError,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

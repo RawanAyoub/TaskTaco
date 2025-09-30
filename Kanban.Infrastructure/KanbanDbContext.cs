@@ -76,6 +76,9 @@ public class KanbanDbContext : IdentityDbContext<User>
                   .WithMany(b => b.Columns)
                   .HasForeignKey(c => c.BoardId)
                   .OnDelete(DeleteBehavior.Cascade);
+            
+            // Ensure unique column names within each board
+            entity.HasIndex(c => new { c.BoardId, c.Name }).IsUnique();
         });
 
         // Configure Task entity

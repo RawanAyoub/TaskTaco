@@ -34,7 +34,8 @@ export function AIPrdExportModal({ boardId, boardName }: AIPrdExportModalProps) 
     setError(null);
     
     try {
-      const response = await fetch(`http://localhost:5090/api/aiprdexport/${boardId}/export`);
+  // Use dev proxy (/api) so it works in dev and prod without hardcoding host
+  const response = await fetch(`/api/aiprdexport/${boardId}/export`);
       if (!response.ok) {
         throw new Error('Failed to export board data');
       }
@@ -77,9 +78,18 @@ export function AIPrdExportModal({ boardId, boardName }: AIPrdExportModalProps) 
     URL.revokeObjectURL(url);
   };
 
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
+    <>
+      {/* Custom backdrop for better visibility in light mode */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+      <Dialog open={isOpen} onOpenChange={setIsOpen} modal={false}>
+        <DialogTrigger asChild>
         <Button 
           variant="outline" 
           size="sm" 
@@ -95,7 +105,7 @@ export function AIPrdExportModal({ boardId, boardName }: AIPrdExportModalProps) 
           AI PRD Export
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[80vh]">
+      <DialogContent className="max-w-4xl max-h-[80vh] border-2 border-border shadow-2xl ring-1 ring-black/10 z-[60]">
         <DialogHeader>
           <DialogTitle>AI PRD Export - {boardName}</DialogTitle>
         </DialogHeader>
@@ -201,9 +211,12 @@ export function AIPrdExportModal({ boardId, boardName }: AIPrdExportModalProps) 
                 className="min-h-[400px] font-mono text-sm"
               />
             </TabsContent>
+
+            
           </Tabs>
         )}
       </DialogContent>
     </Dialog>
+    </>
   );
 }

@@ -4,6 +4,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  profilePicture?: string;
 }
 
 export interface LoginRequest {
@@ -104,6 +105,7 @@ class AuthService {
     }
 
     const user: User = await response.json();
+    console.log('AuthService - getCurrentUser received:', user);
     this.user = user;
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     return user;

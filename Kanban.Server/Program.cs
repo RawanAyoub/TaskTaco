@@ -168,6 +168,8 @@ public class Program
         builder.Services.AddScoped<Kanban.Application.Services.ITaskService, Kanban.Application.Services.TaskService>();
         builder.Services.AddScoped<Kanban.Application.Services.IColumnService, Kanban.Application.Services.ColumnService>();
         builder.Services.AddScoped<Kanban.Application.Services.IUserService, Kanban.Application.Services.UserService>();
+        builder.Services.AddScoped<Kanban.Application.Services.IUserSettingsService, Kanban.Application.Services.UserSettingsService>();
+        builder.Services.AddScoped<Kanban.Server.Services.IProfileService, Kanban.Server.Services.ProfileService>();
         builder.Services.AddOpenApi();
 
         // Add Identity services
@@ -210,8 +212,8 @@ public class Program
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "LocalFreeKanban",
-                ValidAudience = builder.Configuration["Jwt:Audience"] ?? "LocalFreeKanban",
+                ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "TaskTaco",
+                ValidAudience = builder.Configuration["Jwt:Audience"] ?? "TaskTaco",
                 IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
                     System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "your-super-secure-key-that-is-at-least-256-bits"))
             };
@@ -267,6 +269,9 @@ public class Program
 
         // Use CORS
         app.UseCors("AllowFrontend");
+
+        // Use static files for uploaded profile pictures
+        app.UseStaticFiles();
 
         app.MapControllers();
 

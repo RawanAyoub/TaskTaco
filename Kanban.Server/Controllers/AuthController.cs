@@ -118,6 +118,7 @@ public class AuthController : ControllerBase
             user.Id,
             user.Name,
             user.Email,
+            user.ProfilePicture,
         });
     }
 
@@ -141,8 +142,8 @@ public class AuthController : ControllerBase
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"] ?? "LocalFreeKanban",
-            audience: _configuration["Jwt:Audience"] ?? "LocalFreeKanban",
+            issuer: _configuration["Jwt:Issuer"] ?? "TaskTaco",
+            audience: _configuration["Jwt:Audience"] ?? "TaskTaco",
             claims: claims,
             expires: DateTime.Now.AddDays(7),
             signingCredentials: creds);

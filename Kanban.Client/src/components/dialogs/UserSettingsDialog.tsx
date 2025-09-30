@@ -253,7 +253,7 @@ export function UserSettingsDialog({ trigger }: UserSettingsDialogProps) {
                 />
               </div>
               
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground" style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}>
                 Click a sticker above or type a custom emoji. This will be used as the default for new tasks.
               </p>
             </div>

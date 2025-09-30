@@ -52,6 +52,12 @@ export type UpdateUserProfileRequest = {
   email: string;
 };
 
+export type ChangePasswordRequest = {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+};
+
 export type UserSettingsDto = {
   theme: string;
   defaultEmoji: string;

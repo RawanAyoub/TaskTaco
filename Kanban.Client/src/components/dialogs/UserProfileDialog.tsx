@@ -11,8 +11,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, User } from 'lucide-react';
 import { UserService } from '@/services/user';
+import { PasswordChangeForm } from '@/components/PasswordChangeForm';
+import { ProfilePictureUpload } from '@/components/ProfilePictureUpload';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/contexts/AuthContext';
 import type { UserProfileDto } from '@/types/api';
 
 interface UserProfileDialogProps {
@@ -20,6 +25,7 @@ interface UserProfileDialogProps {
 }
 
 export function UserProfileDialog({ trigger }: UserProfileDialogProps) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -116,12 +122,22 @@ export function UserProfileDialog({ trigger }: UserProfileDialogProps) {
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>User Profile</DialogTitle>
-          <DialogDescription>
-            Update your profile information
-          </DialogDescription>
+          <div className="flex items-center gap-3">
+            <Avatar className="w-12 h-12">
+              <AvatarImage src={user?.profilePicture ? `/${user.profilePicture}?t=${Date.now()}` : undefined} alt={user?.name} />
+              <AvatarFallback className="text-sm">
+                {user?.name.split(' ').map(name => name.charAt(0).toUpperCase()).slice(0, 2).join('')}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <DialogTitle>{user?.name}</DialogTitle>
+              <DialogDescription>
+                Manage your profile information and account settings
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
         {loading ? (
@@ -130,56 +146,80 @@ export function UserProfileDialog({ trigger }: UserProfileDialogProps) {
             <span className="ml-2">Loading profile...</span>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-destructive/10 border border-destructive/20 text-destructive px-3 py-2 rounded-md text-sm">
-                {error}
-              </div>
-            )}
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="password">Password</TabsTrigger>
+              <TabsTrigger value="picture">Picture</TabsTrigger>
+            </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Display Name</Label>
-              <Input
-                id="name"
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                placeholder="Your display name"
-                maxLength={100}
+            <TabsContent value="profile" className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <div className="bg-destructive/10 border border-destructive/20 text-destructive px-3 py-2 rounded-md text-sm">
+                    {error}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="name">Display Name</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    placeholder="Your display name"
+                    maxLength={100}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="your.email@example.com"
+                    maxLength={200}
+                  />
+                </div>
+
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setOpen(false)}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={saving}
+                    style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}
+                  >
+                    {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Save Profile
+                  </Button>
+                </DialogFooter>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="password" className="space-y-4">
+              <PasswordChangeForm
+                onSuccess={() => {
+                  // Could show a success message
+                  setOpen(false);
+                }}
+                onCancel={() => setOpen(false)}
               />
-            </div>
+            </TabsContent>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="your.email@example.com"
-                maxLength={200}
-              />
-            </div>
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-                disabled={saving}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={saving}
-                style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}
-              >
-                {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Save Profile
-              </Button>
-            </DialogFooter>
-          </form>
+            <TabsContent value="picture" className="space-y-4">
+              <ProfilePictureUpload />
+            </TabsContent>
+          </Tabs>
         )}
       </DialogContent>
     </Dialog>

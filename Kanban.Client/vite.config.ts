@@ -16,6 +16,12 @@ export default defineConfig({
         target: 'http://localhost:5090',
         changeOrigin: true,
         secure: false
+      },
+      // Proxy static uploads so <img src="/uploads/..."> works in dev
+      '/uploads': {
+        target: 'http://localhost:5090',
+        changeOrigin: true,
+        secure: false,
       }
     }
   }

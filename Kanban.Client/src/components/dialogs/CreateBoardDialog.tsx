@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Modal, ModalContent, ModalHeader, ModalTitle, ModalTrigger } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -92,22 +92,21 @@ export function CreateBoardDialog({ onBoardCreated, trigger }: CreateBoardDialog
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
+    <Modal open={isOpen} onOpenChange={handleOpenChange}>
+      <ModalTrigger asChild>
         {trigger || (
           <Button 
-            variant="secondary"
-            className="shadow-md transition-all duration-200"
+            style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}
           >
             <Plus className="w-4 h-4 mr-2" />
             Create Board
           </Button>
         )}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Create New Board</DialogTitle>
-        </DialogHeader>
+      </ModalTrigger>
+      <ModalContent className="sm:max-w-md">
+        <ModalHeader>
+          <ModalTitle>Create New Board</ModalTitle>
+        </ModalHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Board Name */}
@@ -195,7 +194,7 @@ export function CreateBoardDialog({ onBoardCreated, trigger }: CreateBoardDialog
             Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Ctrl+Enter</kbd> to create quickly
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ModalContent>
+    </Modal>
   );
 }

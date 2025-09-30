@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+  Modal,
+  ModalContent,
+  ModalDescription,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+  ModalTrigger,
+} from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Trash2, X } from 'lucide-react';
 
@@ -56,12 +56,12 @@ export function ConfirmDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setErrorMessage(null); }}>
-      <DialogTrigger asChild>
+    <Modal open={open} onOpenChange={(v: boolean) => { setOpen(v); if (!v) setErrorMessage(null); }}>
+      <ModalTrigger asChild>
         {children}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+      </ModalTrigger>
+      <ModalContent className="sm:max-w-[425px]">
+        <ModalHeader>
           <div className="flex items-center gap-3">
             {variant === 'destructive' ? (
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
@@ -73,20 +73,20 @@ export function ConfirmDialog({
               </div>
             )}
             <div>
-              <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
+              <ModalTitle className="text-lg text-foreground font-semibold">{title}</ModalTitle>
             </div>
           </div>
-          <DialogDescription className="text-sm text-muted-foreground mt-3">
+          <ModalDescription className="text-sm text-muted-foreground mt-3">
             {description}
-          </DialogDescription>
-        </DialogHeader>
+          </ModalDescription>
+        </ModalHeader>
         {errorMessage && (
           <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
             <p className="text-sm text-destructive">{errorMessage}</p>
           </div>
         )}
         
-        <DialogFooter className="mt-6">
+        <ModalFooter className="mt-6">
           <Button
             type="button"
             variant="outline"
@@ -115,8 +115,8 @@ export function ConfirmDialog({
               </>
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 }

@@ -1,6 +1,7 @@
 namespace Kanban.Server.Controllers;
 
 using Kanban.Application.Services;
+using Kanban.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -9,7 +10,7 @@ using System.Security.Claims;
 /// API controller for user profile and settings management.
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/user")]
 [Authorize]
 public class UserController : ControllerBase
 {
@@ -99,7 +100,7 @@ public class UserController : ControllerBase
         {
             Theme = settings.Theme,
             DefaultEmoji = settings.DefaultEmoji,
-            AvailableThemes = this.userService.GetAvailableThemes(),
+            AvailableThemes = UserSettings.AvailableThemes,
         });
     }
 
@@ -126,6 +127,34 @@ public class UserController : ControllerBase
         if (!success)
         {
             return this.BadRequest("Failed to update settings");
+        }
+
+        return this.Ok();
+    }
+
+    /// <summary>
+    /// Changes the current user's password.
+    /// </summary>
+    /// <param name="request">The password change request.</param>
+    /// <returns>Success or error response.</returns>
+    [HttpPatch("password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userId = this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+        {
+            return this.Unauthorized();
+        }
+
+        if (!this.ModelState.IsValid)
+        {
+            return this.BadRequest(this.ModelState);
+        }
+
+        var success = await this.userService.ChangePasswordAsync(userId, request.CurrentPassword, request.NewPassword);
+        if (!success)
+        {
+            return this.BadRequest("Failed to change password. Please check your current password.");
         }
 
         return this.Ok();
@@ -209,4 +238,25 @@ public class UpdateUserSettingsRequest
     /// Gets or sets the new default emoji.
     /// </summary>
     public string DefaultEmoji { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Request model for changing user password.
+/// </summary>
+public class ChangePasswordRequest
+{
+    /// <summary>
+    /// Gets or sets the current password.
+    /// </summary>
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the new password.
+    /// </summary>
+    public string NewPassword { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the confirmation of the new password.
+    /// </summary>
+    public string ConfirmNewPassword { get; set; } = string.Empty;
 }

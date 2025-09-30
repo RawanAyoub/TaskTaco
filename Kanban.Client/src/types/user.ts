@@ -8,6 +8,12 @@ export interface UserSettings {
   updatedAt: string;
 }
 
+export interface UserSettingsResponse {
+  theme: string;
+  defaultEmoji: string;
+  availableThemes: string[];
+}
+
 export interface UpdateUserSettingsRequest {
   theme: string;
   defaultEmoji: string;
