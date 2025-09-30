@@ -79,9 +79,9 @@ export function LabelManager({
       {/* Current Labels */}
       {value.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {value.map((label) => (
+          {value.map((label, index) => (
             <span
-              key={label}
+              key={`${label}-${index}`}
               className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getLabelColor(label)}`}
             >
               <Tag className="w-3 h-3" />
@@ -124,9 +124,9 @@ export function LabelManager({
           {/* Suggestions */}
           {showSuggestions && availableSuggestions.length > 0 && (
             <div className="absolute z-10 w-full mt-1 bg-background/95 backdrop-blur-md border rounded-md shadow-lg">
-              {availableSuggestions.map((suggestion) => (
+              {availableSuggestions.map((suggestion, index) => (
                 <button
-                  key={suggestion}
+                  key={`${suggestion}-${index}`}
                   type="button"
                   className="w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
                   onClick={() => addLabel(suggestion)}

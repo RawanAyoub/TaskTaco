@@ -28,7 +28,7 @@ public class BoardController : ControllerBase
             return Unauthorized();
         }
 
-        var board = await _boardService.CreateBoardAsync(request.Name, userId);
+        var board = await _boardService.CreateBoardAsync(request.Name, request.Description, userId);
         Console.WriteLine($"Created board {board.Id}: {board.Name} for user {userId}");
 
         var response = new CreateBoardResponse { Id = board.Id };
@@ -49,7 +49,8 @@ public class BoardController : ControllerBase
         var boardDtos = boards.Select(b => new BoardDto
         {
             Id = b.Id,
-            Name = b.Name
+            Name = b.Name,
+            Description = b.Description
         });
 
         return Ok(boardDtos);
@@ -60,7 +61,7 @@ public class BoardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateBoard(int id, [FromBody] UpdateBoardRequest request)
     {
-        var success = await _boardService.UpdateBoardAsync(id, request.Name);
+        var success = await _boardService.UpdateBoardAsync(id, request.Name, request.Description);
         if (!success)
         {
             return NotFound();
@@ -74,6 +75,19 @@ public class BoardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteBoard(int id)
     {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        // Ensure the board exists and belongs to the current user for security
+        var board = await _boardService.GetBoardByIdAsync(id);
+        if (board == null || board.UserId != userId)
+        {
+            return NotFound();
+        }
+
         var success = await _boardService.DeleteBoardAsync(id);
         if (!success)
         {
@@ -87,6 +101,7 @@ public class BoardController : ControllerBase
 public class CreateBoardRequest
 {
     public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
 }
 
 public class CreateBoardResponse
@@ -98,9 +113,11 @@ public class BoardDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
 }
 
 public class UpdateBoardRequest
 {
     public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
 }

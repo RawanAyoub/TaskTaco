@@ -54,7 +54,8 @@ public class TaskController : ControllerBase
     public async Task<IActionResult> GetTasksByColumn(int columnId)
     {
         var tasks = await this.taskService.GetTasksByColumnAsync(columnId);
-        return this.Ok(tasks);
+        var taskResponses = tasks.Select(this.MapTaskToResponse);
+        return this.Ok(taskResponses);
     }
 
     /// <summary>
@@ -71,7 +72,8 @@ public class TaskController : ControllerBase
             return this.NotFound();
         }
 
-        return this.Ok(task);
+        var taskResponse = this.MapTaskToResponse(task);
+        return this.Ok(taskResponse);
     }
 
     /// <summary>
@@ -103,7 +105,8 @@ public class TaskController : ControllerBase
             checklist,
             request.Stickers);
 
-        return this.CreatedAtAction(nameof(this.GetTask), new { id = task.Id }, task);
+        var taskResponse = this.MapTaskToResponse(task);
+        return this.CreatedAtAction(nameof(this.GetTask), new { id = task.Id }, taskResponse);
     }
 
     /// <summary>
@@ -177,6 +180,32 @@ public class TaskController : ControllerBase
         }
 
         return this.NoContent();
+    }
+
+    /// <summary>
+    /// Maps a Task entity to a response object with properly deserialized enhanced fields.
+    /// </summary>
+    /// <param name="task">The task entity.</param>
+    /// <returns>A task response object.</returns>
+    private object MapTaskToResponse(Kanban.Domain.Entities.Task task)
+    {
+        return new
+        {
+            id = task.Id,
+            columnId = task.ColumnId,
+            title = task.Title,
+            description = task.Description,
+            priority = task.Priority.ToString(),
+            status = task.Status,
+            dueDate = task.DueDate?.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+            labels = task.GetLabels(),
+            checklist = task.GetChecklist(),
+            stickers = task.GetStickers(),
+            createdAt = task.CreatedAt?.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+            updatedAt = task.UpdatedAt?.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+            order = task.Order,
+            isOverdue = task.DueDate.HasValue && task.DueDate.Value < DateTime.UtcNow
+        };
     }
 }
 

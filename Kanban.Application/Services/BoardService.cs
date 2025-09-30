@@ -9,8 +9,8 @@ public interface IBoardService
     Task<IEnumerable<Board>> GetBoardsAsync();
     Task<IEnumerable<Board>> GetBoardsByUserAsync(string userId);
     Task<Board?> GetBoardByIdAsync(int id);
-    Task<Board> CreateBoardAsync(string name, string userId);
-    Task<bool> UpdateBoardAsync(int id, string name);
+    Task<Board> CreateBoardAsync(string name, string? description, string userId);
+    Task<bool> UpdateBoardAsync(int id, string name, string? description);
     Task<bool> DeleteBoardAsync(int id);
 }
 
@@ -69,11 +69,12 @@ public class BoardService : IBoardService
     /// <param name="name">The name of the board.</param>
     /// <param name="userId">The ID of the user creating the board.</param>
     /// <returns>The created board.</returns>
-    public async Task<Board> CreateBoardAsync(string name, string userId)
+    public async Task<Board> CreateBoardAsync(string name, string? description, string userId)
     {
         var board = new Board
         {
             Name = name,
+            Description = description,
             UserId = userId,
         };
         this.context.Boards.Add(board);
@@ -87,7 +88,7 @@ public class BoardService : IBoardService
     /// <param name="id">The board ID.</param>
     /// <param name="name">The new name of the board.</param>
     /// <returns>True if the update was successful, otherwise false.</returns>
-    public async Task<bool> UpdateBoardAsync(int id, string name)
+    public async Task<bool> UpdateBoardAsync(int id, string name, string? description)
     {
         var board = await this.context.Boards.FindAsync(id);
         if (board == null)
@@ -96,6 +97,7 @@ public class BoardService : IBoardService
         }
         
         board.Name = name;
+        board.Description = description;
         await this.context.SaveChangesAsync();
         return true;
     }

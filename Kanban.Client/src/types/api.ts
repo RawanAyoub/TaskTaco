@@ -1,4 +1,4 @@
-export type BoardDto = { id: number; name: string };
+export type BoardDto = { id: number; name: string; description?: string };
 export type ColumnDto = { id: number; boardId: number; name: string; order: number };
 export type TaskDto = { 
   id: number; 
@@ -32,7 +32,7 @@ export type UpdateTaskRequest = {
   description: string; 
   status: string; 
   priority: string;
-  dueDate?: string;
+  dueDate?: string; // ISO date string - .NET will parse automatically
   labels?: string[];
   checklist?: { id: string; text: string; done: boolean }[];
   stickers?: string[];

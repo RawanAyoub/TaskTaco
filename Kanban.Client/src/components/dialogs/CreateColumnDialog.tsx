@@ -149,6 +149,7 @@ export function CreateColumnDialog({ onColumnCreate, trigger }: CreateColumnDial
                 type="submit" 
                 disabled={isCreating || !name.trim()}
                 className="min-w-[80px]"
+                style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}
               >
                 {isCreating ? (
                   <>

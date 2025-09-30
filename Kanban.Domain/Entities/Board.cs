@@ -16,6 +16,11 @@ public class Board
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets an optional description for the board.
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
     /// Gets or sets the ID of the user who owns this board.
     /// </summary>
     public string UserId { get; set; } = string.Empty;

@@ -1,4 +1,5 @@
 export { CreateBoardDialog } from './CreateBoardDialog';
+export { EditBoardDialog } from './EditBoardDialog';
 export { CreateTaskDialog } from './CreateTaskDialog';
 export { CreateColumnDialog } from './CreateColumnDialog';
 export { EditTaskDialog } from './EditTaskDialog';

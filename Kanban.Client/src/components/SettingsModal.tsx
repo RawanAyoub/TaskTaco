@@ -252,7 +252,7 @@ export function SettingsModal({ isOpen, onClose, onSettingsUpdate }: SettingsMod
           <Button variant="outline" onClick={handleCancel} disabled={loading}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={loading}>
+          <Button onClick={handleSave} disabled={loading} variant="secondary">
             {loading ? 'Saving...' : 'Save Settings'}
           </Button>
         </DialogFooter>

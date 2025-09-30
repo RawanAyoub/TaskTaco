@@ -188,7 +188,7 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
               <div className={`w-2 h-2 rounded-full ${formData.title.trim() ? 'bg-green-500' : 'bg-muted'}`} title="Title" />
               <div className={`w-2 h-2 rounded-full ${formData.dueDate ? 'bg-blue-500' : 'bg-muted'}`} title="Due date" />
               <div className={`w-2 h-2 rounded-full ${formData.labels.length > 0 ? 'bg-purple-500' : 'bg-muted'}`} title="Labels" />
-              <div className={`w-2 h-2 rounded-full ${formData.checklist.length > 0 ? 'bg-orange-500' : 'bg-muted'}`} title="Checklist" />
+              <div className={`w-2 h-2 rounded-full ${formData.checklist.length > 0 ? 'bg-primary' : 'bg-muted'}`} title="Checklist" />
               <div className={`w-2 h-2 rounded-full ${formData.stickers.length > 0 ? 'bg-pink-500' : 'bg-muted'}`} title="Stickers" />
             </div>
           </div>
@@ -321,7 +321,8 @@ export function CreateTaskDialog({ onTaskCreate, trigger, columnName }: CreateTa
               <Button 
                 type="submit" 
                 disabled={isCreating || !formData.title.trim()}
-                className="min-w-[80px] bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="min-w-[80px]"
+                style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}
               >
                 {isCreating ? (
                   <>

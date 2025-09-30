@@ -8,7 +8,7 @@ import { Plus, Loader2 } from 'lucide-react';
 import { Boards } from '@/services/boards';
 
 interface CreateBoardDialogProps {
-  onBoardCreated: (board: { id: number; name: string }) => void;
+  onBoardCreated: (board: { id: number; name: string; description?: string }) => void;
   trigger?: React.ReactNode;
 }
 
@@ -63,12 +63,13 @@ export function CreateBoardDialog({ onBoardCreated, trigger }: CreateBoardDialog
       setIsCreating(true);
       setError(null);
       
-      const result = await Boards.create(formData.name.trim());
+  const result = await Boards.create(formData.name.trim(), formData.description.trim() || undefined);
       
       // Create board object to return
       const newBoard = {
         id: result.id,
-        name: formData.name.trim()
+        name: formData.name.trim(),
+        description: formData.description.trim() || undefined,
       };
       
       // Notify parent component
@@ -95,8 +96,8 @@ export function CreateBoardDialog({ onBoardCreated, trigger }: CreateBoardDialog
       <DialogTrigger asChild>
         {trigger || (
           <Button 
+            variant="secondary"
             className="shadow-md transition-all duration-200"
-            style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}
           >
             <Plus className="w-4 h-4 mr-2" />
             Create Board

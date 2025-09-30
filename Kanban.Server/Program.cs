@@ -1,15 +1,75 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Kanban.Domain.Enums;
+using System.Data;
 
 namespace Kanban.Server;
 
 public class Program
 {
+    private static async Task EnsureSqliteSchemaAsync(Kanban.Infrastructure.KanbanDbContext context)
+    {
+        try
+        {
+            var connection = context.Database.GetDbConnection();
+            await connection.OpenAsync();
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = "PRAGMA table_info(Boards);";
+            var hasDescription = false;
+            await using (var reader = await cmd.ExecuteReaderAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    var colName = reader.GetString(1);
+                    if (string.Equals(colName, "Description", StringComparison.OrdinalIgnoreCase))
+                    {
+                        hasDescription = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!hasDescription)
+            {
+                await using var alter = connection.CreateCommand();
+                alter.CommandText = "ALTER TABLE Boards ADD COLUMN Description TEXT;";
+                await alter.ExecuteNonQueryAsync();
+                Console.WriteLine("[Startup] Added missing Boards.Description column for SQLite.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Startup] SQLite schema check failed: {ex.Message}");
+        }
+    }
+
     private static async Task SeedDatabase(Kanban.Infrastructure.KanbanDbContext context, UserManager<Kanban.Domain.Entities.User> userManager)
     {
-        // Ensure database is created
-        await context.Database.EnsureCreatedAsync();
+        // Apply migrations only for relational providers; otherwise ensure created (e.g., InMemory in tests)
+        if (context.Database.IsRelational())
+        {
+            try
+            {
+                await context.Database.MigrateAsync();
+            }
+            catch (Exception ex)
+            {
+                // If the DB was previously created without migrations, migrating can fail with "table already exists".
+                // In that case, fall back to EnsureCreated so the app can start. Devs can optionally reset the DB to align with migrations.
+                Console.WriteLine($"[Startup] Migration failed: {ex.Message}. Falling back to EnsureCreated().");
+                await context.Database.EnsureCreatedAsync();
+            }
+        }
+        else
+        {
+            await context.Database.EnsureCreatedAsync();
+        }
+
+        // Best-effort schema compatibility for SQLite: ensure Boards.Description exists if DB was created without migrations
+        if (context.Database.IsSqlite())
+        {
+            await EnsureSqliteSchemaAsync(context);
+        }
 
         // Create default user if none exists
         var defaultUser = await userManager.FindByEmailAsync("default@example.com");
@@ -31,6 +91,7 @@ public class Program
             var board = new Kanban.Domain.Entities.Board
             {
                 Name = "My Kanban Board",
+                Description = "Welcome to TaskTaco! This is a sample board seeded for you.",
                 UserId = defaultUser.Id,
             };
             context.Boards.Add(board);
@@ -181,12 +242,15 @@ public class Program
 
         var app = builder.Build();
 
-        // Seed the database
-        using (var scope = app.Services.CreateScope())
+        // Seed only in Development or Testing environments
+        if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Testing")
         {
-            var context = scope.ServiceProvider.GetRequiredService<Kanban.Infrastructure.KanbanDbContext>();
-            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Kanban.Domain.Entities.User>>();
-            await SeedDatabase(context, userManager);
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<Kanban.Infrastructure.KanbanDbContext>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Kanban.Domain.Entities.User>>();
+                await SeedDatabase(context, userManager);
+            }
         }
 
         // Configure the HTTP request pipeline.

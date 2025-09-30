@@ -59,6 +59,7 @@ public class KanbanDbContext : IdentityDbContext<User>
         {
             entity.HasKey(b => b.Id);
             entity.Property(b => b.Name).IsRequired().HasMaxLength(200);
+            entity.Property(b => b.Description).HasMaxLength(2000);
             entity.HasOne(b => b.User)
                   .WithMany(u => u.Boards)
                   .HasForeignKey(b => b.UserId)

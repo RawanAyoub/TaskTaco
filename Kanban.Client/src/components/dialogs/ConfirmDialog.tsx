@@ -6,6 +6,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Trash2, X } from 'lucide-react';
@@ -18,7 +19,7 @@ interface ConfirmDialogProps {
   variant?: 'destructive' | 'default';
   onConfirm: () => void | Promise<void>;
   onCancel?: () => void;
-  children: React.ReactNode;
+  children: React.ReactElement;
 }
 
 export function ConfirmDialog({
@@ -33,6 +34,7 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -42,6 +44,7 @@ export function ConfirmDialog({
     } catch (error) {
       // Let the parent handle the error
       console.error('Confirm action failed:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Action failed');
     } finally {
       setLoading(false);
     }
@@ -53,10 +56,10 @@ export function ConfirmDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <div onClick={() => setOpen(true)} className="cursor-pointer">
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setErrorMessage(null); }}>
+      <DialogTrigger asChild>
         {children}
-      </div>
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <div className="flex items-center gap-3">
@@ -77,6 +80,11 @@ export function ConfirmDialog({
             {description}
           </DialogDescription>
         </DialogHeader>
+        {errorMessage && (
+          <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+            <p className="text-sm text-destructive">{errorMessage}</p>
+          </div>
+        )}
         
         <DialogFooter className="mt-6">
           <Button

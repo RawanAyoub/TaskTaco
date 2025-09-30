@@ -5,6 +5,7 @@ import { getPriorityLabel, getPriorityColor } from '../types/enums';
 import { Card, CardContent } from './ui/card';
 import { cn } from '@/lib/utils';
 import { format, parseISO, isPast } from 'date-fns';
+import { TaskDetailsPopover } from './task/TaskDetailsPopover';
 
 interface KanbanTaskProps {
   task: Task;
@@ -54,8 +55,11 @@ export function KanbanTask({ task, isDragging = false }: KanbanTaskProps) {
           <h4 className="font-semibold text-white text-sm leading-tight flex-1">
             {task.title}
           </h4>
-          <div className={cn('px-2 py-1 rounded text-xs font-medium border ml-2', priorityColor)}>
-            {priorityLabel}
+          <div className="flex items-center gap-1 ml-2">
+            <TaskDetailsPopover task={task} side="right" align="start" />
+            <div className={cn('px-2 py-1 rounded text-xs font-medium border', priorityColor)}>
+              {priorityLabel}
+            </div>
           </div>
         </div>
 

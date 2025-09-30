@@ -80,7 +80,17 @@ export function AIPrdExportModal({ boardId, boardName }: AIPrdExportModalProps) 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" onClick={() => setIsOpen(true)}>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => setIsOpen(true)}
+          className="transition-colors"
+          style={{
+            // Ensure outline buttons respect theme tokens
+            borderColor: 'hsl(var(--border))',
+            color: 'hsl(var(--foreground))',
+          }}
+        >
           <FileText className="w-4 h-4 mr-2" />
           AI PRD Export
         </Button>
@@ -96,7 +106,7 @@ export function AIPrdExportModal({ boardId, boardName }: AIPrdExportModalProps) 
             <p className="text-center text-muted-foreground">
               Export your board data as JSON and generate an AI-ready PRD prompt
             </p>
-            <Button onClick={handleExport} disabled={loading}>
+            <Button onClick={handleExport} disabled={loading} className="min-w-[160px]" style={{ backgroundColor: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}>
               {loading ? 'Exporting...' : 'Generate Export'}
             </Button>
             {error && (

@@ -45,7 +45,7 @@ export const KanbanBoard = ({ id, children, className }: KanbanBoardProps) => {
       data-testid="kanban-board"
       className={cn(
         'flex h-full min-h-40 flex-col gap-2 rounded-lg border border-border bg-card p-4 text-xs shadow-lg outline-2 transition-all',
-        isOver ? 'outline-orange-500' : 'outline-transparent',
+  isOver ? 'outline-primary' : 'outline-transparent',
         className
       )}
       // Fallback styles in case Tailwind isn't applied at runtime
