@@ -1,0 +1,1 @@
+// This duplicate file was removed. The correct RegisterModel lives under Kanban.Server/Models.
