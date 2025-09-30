@@ -38,8 +38,15 @@ TaskTaco is a local-first Kanban app that runs entirely on your device. It’s f
 
 - Backend: ASP.NET Core 8 Web API, EF Core, SQLite, Identity, JWT
 - Frontend: React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, @dnd-kit/core
-- Tests: xUnit (server), Vitest (client), Cypress (E2E)
+- Tests: xUnit (server), Vitest (client)
 - Packaging: Electron (planned)
+
+Client dependencies in use:
+- UI: shadcn/ui (Radix primitives), lucide-react icons
+- DnD: @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities
+- Styling: tailwindcss, @tailwindcss/postcss, tailwind-merge, class-variance-authority, clsx
+- Theming: next-themes
+- Dates: date-fns, react-day-picker
 
 ## Project Structure
 
@@ -63,15 +70,10 @@ Prerequisites:
 - .NET SDK 8+
 - Node.js 18+ and npm
 
-Clone and start the backend:
-
 ```cmd
-git clone https://github.com/your-org/TaskTaco.git
 cd TaskTaco\Kanban.Server
 dotnet run
 ```
-
-In a new terminal, start the frontend:
 
 ```cmd
 cd TaskTaco\Kanban.Client
@@ -103,9 +105,9 @@ dotnet test
 
 cd Kanban.Client
 npm run test
-
-npm run cypress:run
 ```
+
+E2E note: Cypress has been removed to keep dependencies lean. If E2E tests are needed later, consider Playwright or WebdriverIO.
 
 ## Optional: Git hooks
 
@@ -115,6 +117,7 @@ You can enable an optional pre-commit hook to keep builds and tests green:
 git config core.hooksPath .githooks
 ```
 
+E2E note: Cypress is removed to keep dependencies lean. If E2E tests are needed later, consider Playwright or WebdriverIO.
 On macOS/Linux you may need to make the hook executable:
 
 ```bash

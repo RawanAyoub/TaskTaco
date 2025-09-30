@@ -36,21 +36,4 @@ Thumbs.db
 .idea/
 *.iml
 .vscode/   
-
-# Ignore specify memory files
-.specify
-
-# Ignore other files
-.github/
-
-.specify/memory/constitution.md
-specs/001-deliver-a-fully/spec.md
-specs/001-deliver-a-fully/research.md
-specs/001-deliver-a-fully/data-model.md
-.gitignore
-specs/001-deliver-a-fully/quickstart.md
-specs/001-deliver-a-fully/contracts/board-crud.md
-.specify/memory/constitution.md
-specs/001-deliver-a-fully/plan.md
-specs/001-deliver-a-fully/tasks.md
 Kanban.Server/Kanban.db
