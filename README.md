@@ -1,17 +1,3 @@
-# TaskTaco 🌮
-
-Spice up your productivity with tacos and tasks!
-
-<p align="center">
-  <img src="Kanban.Client/src/components/ui/TaskTaco_logo.png" alt="TaskTaco Logo" width="200" />
-</p>
-
-TaskTaco is a free, local-first Kanban board app that keeps your data on your machine. It’s simple, fast, and fun—complete with playful themes to match your vibe: Classic Taco, Guacamole, and Salsa. Built to reduce IT costs by being free, privacy-first, and self-hostable.
-
-# 🌮 TaskTaco
-
-Spice up your productivity with tacos and tasks!
-
 <p align="center">
   <img src="Kanban.Client/src/components/ui/TaskTaco_logo.png" alt="TaskTaco Logo" width="200" />
   <br/>
