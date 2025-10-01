@@ -1,6 +1,6 @@
 namespace Kanban.Infrastructure;
 
-using Kanban.Domain.Entities;
+using global::Kanban.Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,7 +31,7 @@ public class KanbanDbContext : IdentityDbContext<User>
     /// <summary>
     /// Gets or sets the collection of tasks in the database.
     /// </summary>
-    public DbSet<Kanban.Domain.Entities.Task> Tasks { get; set; } = null!;
+    public DbSet<global::Kanban.Domain.Entities.Task> Tasks { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the collection of user settings in the database.
@@ -81,8 +81,8 @@ public class KanbanDbContext : IdentityDbContext<User>
             entity.HasIndex(c => new { c.BoardId, c.Name }).IsUnique();
         });
 
-        // Configure Task entity
-        modelBuilder.Entity<Kanban.Domain.Entities.Task>(entity =>
+    // Configure Task entity
+    modelBuilder.Entity<Task>(entity =>
         {
             entity.HasKey(t => t.Id);
             entity.Property(t => t.Title).IsRequired().HasMaxLength(500);
